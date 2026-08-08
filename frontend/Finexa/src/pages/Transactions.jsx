@@ -16,7 +16,9 @@ import toast from "react-hot-toast";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { formatCurrency, formatDate } from "../utils/format.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
+import { useCurrency } from "../hooks/useCurrency.js";
+import { formatDate } from "../utils/format.js";
 import Button from "../components/ui/Button.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import CategoryBadge from "../components/CategoryBadge.jsx";
@@ -28,7 +30,9 @@ import TransactionTrendChart from "../components/charts/TransactionTrendChart.js
 
 const Transactions = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const currency = user?.currency || "USD";
+  const { format } = useCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
   const [allTransactions, setAllTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -210,7 +214,7 @@ const Transactions = () => {
     setModalOpen(true);
   };
   const onDelete = async (id) => {
-    if (!confirm("Delete this transaction?")) return;
+    if (!confirm(t("txn.deleteConfirm"))) return;
     try {
       await api.delete(API_PATHS.TRANSACTIONS.DELETE(id));
       toast.success("Transaction deleted");
@@ -246,19 +250,19 @@ const Transactions = () => {
   const tabs = [
     {
       value: "",
-      label: "All",
+      label: t("txn.all"),
       count: counts.all,
       badge: "bg-slate-200 text-slate-700",
     },
     {
       value: "income",
-      label: "Income",
+      label: t("txn.income"),
       count: counts.income,
       badge: "bg-emerald-100 text-emerald-700",
     },
     {
       value: "expense",
-      label: "Expense",
+      label: t("txn.expense"),
       count: counts.expense,
       badge: "bg-rose-100 text-rose-700",
     },
@@ -269,14 +273,14 @@ const Transactions = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">
-            Transactions
+            {t("txn.title")}
           </h1>
           <p className="text-sm text-text-secondary mt-1.5">
-            All your income and expenses
+            {t("txn.subtitle")}
           </p>
         </div>
         <Button onClick={onCreate}>
-          <Plus size={16} /> Add Transaction
+          <Plus size={16} /> {t("txn.add")}
         </Button>
       </div>
 
@@ -284,18 +288,18 @@ const Transactions = () => {
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-text-primary tracking-tight">
-              Transaction Trend
+              {t("txn.trend")}
             </h2>
             <p className="text-xs text-text-secondary mt-1">
-              Income vs expenses over time
+              {t("txn.trendSub")}
             </p>
           </div>
           <div className="flex items-center gap-1 bg-background p-1 rounded-full shrink-0">
             {[
               { value: "30d", label: "30D" },
               { value: "3m", label: "3M" },
-              { value: "monthly", label: "Monthly" },
-              { value: "yearly", label: "Yearly" },
+              { value: "monthly", label: t("txn.monthly") },
+              { value: "yearly", label: t("txn.yearly") },
             ].map((r) => (
               <button
                 key={r.value}
@@ -327,10 +331,10 @@ const Transactions = () => {
               </div>
               <div className="min-w-0">
                 <h3 className="font-semibold text-text-primary">
-                  AI Spending Insight
+                  {t("txn.aiInsight")}
                 </h3>
                 <p className="text-sm text-text-secondary truncate">
-                  Get a quick analysis of the {transactions.length} transaction
+                  {t("txn.aiInsightSub")} {transactions.length} transaction
                   {transactions.length !== 1 ? "s" : ""} in this view
                 </p>
               </div>
@@ -343,12 +347,12 @@ const Transactions = () => {
               {analysisLoading ? (
                 <>
                   <Spinner size="sm" />
-                  Analyzing
+                  {t("txn.analyzing")}
                 </>
               ) : (
                 <>
                   <Sparkles size={14} />
-                  Generate
+                  {t("txn.generate")}
                 </>
               )}
             </Button>
@@ -361,7 +365,7 @@ const Transactions = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-semibold text-text-primary">
-                  AI Spending Insight
+                  {t("txn.aiInsight")}
                 </h3>
                 {analysis.highlight && (
                   <span className="inline-flex items-center bg-violet-50 text-violet-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
@@ -377,7 +381,9 @@ const Transactions = () => {
                 disabled={analysisLoading}
                 className="mt-3 text-xs font-medium text-violet-600 hover:text-violet-700 disabled:opacity-50"
               >
-                {analysisLoading ? "Re-analyzing..." : "Re-analyze"}
+                {analysisLoading
+                  ? t("txn.analyzing") + "..."
+                  : t("txn.reanalyze")}
               </button>
             </div>
             <button
@@ -413,7 +419,7 @@ const Transactions = () => {
                   setSearchParams(next, { replace: true });
                 }
               }}
-              placeholder="Search description or notes..."
+              placeholder={t("txn.search")}
               className="w-full pl-10 pr-4 py-2 rounded-full input-field text-sm focus-ring-accent"
             />
           </div>
@@ -446,7 +452,7 @@ const Transactions = () => {
             }
             className="px-4 py-2 rounded-full input-field text-sm focus-ring-accent"
           >
-            <option value="">All categories</option>
+            <option value="">{t("txn.allCategories")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -459,7 +465,7 @@ const Transactions = () => {
             onChange={(e) => setFilters({ ...filters, cardId: e.target.value })}
             className="px-4 py-2 rounded-full input-field text-sm focus-ring-accent"
           >
-            <option value="">All cards</option>
+            <option value="">{t("txn.allCards")}</option>
             {cards.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -476,11 +482,11 @@ const Transactions = () => {
         ) : transactions.length === 0 ? (
           <EmptyState
             icon={Wallet}
-            title="No transactions"
-            description="Try adjusting filters, or add a new transaction."
+            title={t("txn.noTransactions")}
+            description={t("txn.noTransactionsDesc")}
             action={
               <Button onClick={onCreate}>
-                <Plus size={16} /> Add Transaction
+                <Plus size={16} /> {t("txn.add")}
               </Button>
             }
           />
@@ -489,12 +495,12 @@ const Transactions = () => {
             <table className="w-full">
               <thead>
                 <tr className="text-left text-xs font-semibold text-text-secondary uppercase tracking-wider border-b border-border-color">
-                  <th className="pb-4 pr-4">Category</th>
-                  <th className="pb-4 pr-4">Description</th>
-                  <th className="pb-4 pr-4">Card</th>
-                  <th className="pb-4 pr-4">Date</th>
-                  <th className="pb-4 pr-4">Type</th>
-                  <th className="pb-4 pr-4 text-right">Amount</th>
+                  <th className="pb-4 pr-4">{t("txn.category")}</th>
+                  <th className="pb-4 pr-4">{t("txn.description")}</th>
+                  <th className="pb-4 pr-4">{t("txn.card")}</th>
+                  <th className="pb-4 pr-4">{t("txn.date")}</th>
+                  <th className="pb-4 pr-4">{t("txn.type")}</th>
+                  <th className="pb-4 pr-4 text-right">{t("txn.amount")}</th>
                   <th className="pb-4"></th>
                 </tr>
               </thead>
@@ -506,7 +512,7 @@ const Transactions = () => {
                   >
                     <td className="py-4 pr-4">
                       <CategoryBadge
-                        name={t.category_name || "Uncategorized"}
+                        name={t.category_name || t("dashboard.uncategorized")}
                         icon={t.category_icon}
                         color={t.category_color}
                         size="sm"
@@ -557,7 +563,7 @@ const Transactions = () => {
                       }`}
                     >
                       {t.type === "income" ? "+" : "-"}
-                      {formatCurrency(t.amount, currency)}
+                      {format(t.amount)}
                     </td>
                     <td className="py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -583,12 +589,12 @@ const Transactions = () => {
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-5 pt-5 border-t border-border-color">
                 <div className="text-xs text-text-secondary">
-                  Showing{" "}
+                  {t("txn.showing")}{" "}
                   <span className="font-semibold text-text-primary">
                     {startIdx + 1}–
                     {Math.min(startIdx + PAGE_SIZE, transactions.length)}
                   </span>{" "}
-                  of{" "}
+                  {t("txn.of")}{" "}
                   <span className="font-semibold text-text-primary">
                     {transactions.length}
                   </span>
@@ -640,7 +646,7 @@ const Transactions = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit Transaction" : "New Transaction"}
+        title={editing ? t("txn.edit") : t("txn.new")}
       >
         <TransactionForm
           initial={editing}

@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import Button from "../components/ui/Button.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -35,10 +36,11 @@ const brandIcons = {
 };
 
 const CardPreview = ({ card }) => {
+  const { t } = useLanguage();
   const color = card.color || "#6366F1";
   const brand = card.brand || "Card";
   const lastFour = card.last_four || "----";
-  const displayName = card.name || "Unnamed Card";
+  const displayName = card.name || t("card.unnamed");
   const bank = card.bank || "";
   const isCredit = card.type === "credit";
   const isConnected = Boolean(card.provider);
@@ -62,12 +64,12 @@ const CardPreview = ({ card }) => {
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-medium opacity-80 uppercase">
-            {isCredit ? "Credit" : "Debit"} Card
+            {isCredit ? t("card.creditCard") : t("card.debitCard")}
           </span>
           <div className="flex items-center gap-2">
             {isConnected && (
               <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-500/90 text-white px-2 py-0.5 rounded-full">
-                <Link2 size={10} /> Live
+                <Link2 size={10} /> {t("card.live")}
               </span>
             )}
             {card.is_default && (
@@ -82,13 +84,15 @@ const CardPreview = ({ card }) => {
 
         <div className="flex items-end justify-between">
           <div>
-            <div className="text-xs opacity-60 mb-1">Card number</div>
+            <div className="text-xs opacity-60 mb-1">
+              {t("card.cardNumber")}
+            </div>
             <div className="font-mono text-lg tracking-wider">
               •••• •••• •••• {lastFour}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xs opacity-60 mb-1">Brand</div>
+            <div className="text-xs opacity-60 mb-1">{t("card.brand")}</div>
             <div className="font-medium">{brand}</div>
           </div>
         </div>
@@ -98,6 +102,7 @@ const CardPreview = ({ card }) => {
 };
 
 const Cards = () => {
+  const { t } = useLanguage();
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -111,7 +116,7 @@ const Cards = () => {
       const res = await api.get(API_PATHS.CARDS.LIST);
       setCards(res.data);
     } catch {
-      toast.error("Failed to load cards");
+      toast.error(t("card.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -132,16 +137,13 @@ const Cards = () => {
   };
 
   const onDelete = async (id) => {
-    if (
-      !confirm("Delete this card? Transactions linked to it will be unlinked.")
-    )
-      return;
+    if (!confirm(t("card.deleteConfirm"))) return;
     try {
       await api.delete(API_PATHS.CARDS.DELETE(id));
-      toast.success("Card deleted");
+      toast.success(t("card.deleted"));
       fetchCards();
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("card.deleteFailed"));
     }
   };
 
@@ -157,7 +159,7 @@ const Cards = () => {
       if (res.data?.authUrl) {
         window.location.href = res.data.authUrl;
       } else {
-        toast.error("Could not generate link URL");
+        toast.error(t("card.linkUrlFailed"));
         setConnecting(false);
       }
     } catch (err) {
@@ -165,7 +167,7 @@ const Cards = () => {
         err.response?.data?.message ||
         err.response?.data?.details?.message ||
         err.message ||
-        "Unable to connect card.";
+        t("card.connectFailed");
       toast.error(message);
       setConnecting(false);
     }
@@ -184,10 +186,10 @@ const Cards = () => {
         color: card.color,
         isDefault: true,
       });
-      toast.success("Default card updated");
+      toast.success(t("card.defaultUpdated"));
       fetchCards();
     } catch {
-      toast.error("Failed to update default card");
+      toast.error(t("card.defaultUpdateFailed"));
     }
   };
 
@@ -196,18 +198,16 @@ const Cards = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Cards
+            {t("card.title")}
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5">
-            Manage your payment cards — credit and debit
-          </p>
+          <p className="text-sm text-slate-500 mt-1.5">{t("card.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={() => setConnectOpen(true)}>
-            <Link2 size={16} /> Connect Card
+            <Link2 size={16} /> {t("card.connect")}
           </Button>
           <Button onClick={onCreate}>
-            <Plus size={16} /> Add Card
+            <Plus size={16} /> {t("card.add")}
           </Button>
         </div>
       </div>
@@ -219,11 +219,11 @@ const Cards = () => {
       ) : cards.length === 0 ? (
         <EmptyState
           icon={CreditCard}
-          title="No cards yet"
-          description="Add a card to start tracking which payment method you use for transactions."
+          title={t("card.noCards")}
+          description={t("card.noCardsDesc")}
           action={
             <Button onClick={onCreate}>
-              <Plus size={16} /> Add Card
+              <Plus size={16} /> {t("card.add")}
             </Button>
           }
         />
@@ -246,7 +246,7 @@ const Cards = () => {
                         size={12}
                         className="text-yellow-400 fill-current"
                       />
-                      Default
+                      {t("card.default")}
                     </span>
                   )}
                 </div>
@@ -254,7 +254,7 @@ const Cards = () => {
                   {!card.is_default && (
                     <button
                       onClick={() => setDefault(card.id)}
-                      title="Set as default"
+                      title={t("card.setDefault")}
                       className="p-1.5 hover:bg-slate-100 rounded-md text-slate-500 transition"
                     >
                       <Star size={14} />
@@ -282,7 +282,7 @@ const Cards = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit Card" : "New Card"}
+        title={editing ? t("card.edit") : t("card.new")}
       >
         <CardForm
           initial={editing}
@@ -294,12 +294,9 @@ const Cards = () => {
       <Modal
         open={connectOpen}
         onClose={() => setConnectOpen(false)}
-        title="Connect a Card"
+        title={t("card.connectTitle")}
       >
-        <p className="text-sm text-slate-500 mb-4">
-          Securely link your card from a supported bank. You'll be redirected to
-          the bank to authorize access.
-        </p>
+        <p className="text-sm text-slate-500 mb-4">{t("card.connectDesc")}</p>
         <div className="space-y-3">
           {CONNECT_PROVIDERS.map((p) => (
             <button
@@ -315,7 +312,9 @@ const Cards = () => {
                 <div className="text-left">
                   <div className="font-semibold text-slate-900">{p.name}</div>
                   <div className="text-xs text-slate-500">
-                    {p.country === "EU" ? "European Union" : "Georgia"}
+                    {p.country === "EU"
+                      ? t("card.europeanUnion")
+                      : t("card.georgia")}
                   </div>
                 </div>
               </div>

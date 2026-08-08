@@ -2,6 +2,8 @@ import { useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext.jsx";
 import { formatCurrency } from "../../utils/format.js";
 
+// Values passed to this tooltip are already in the display currency.
+// It only formats them with the currency symbol (no conversion).
 const CustomTooltip = ({ active, payload, label, currency }) => {
   const { theme } = useContext(ThemeContext);
   if (!active || !payload || payload.length === 0) return null;

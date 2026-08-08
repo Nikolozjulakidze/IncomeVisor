@@ -12,9 +12,11 @@ import {
 import { formatCurrency } from "../../utils/format.js";
 import { ThemeContext } from "../../context/ThemeContext.jsx";
 import CustomTooltip from "./CustomTooltip.jsx";
+import { useCurrency } from "../../hooks/useCurrency.js";
 
 const TransactionTrendChart = ({ data, currency, interval = 3 }) => {
   const { theme } = useContext(ThemeContext);
+  const { convertAmount } = useCurrency();
 
   const gridColor = theme === "dark" ? "#334155" : "#e2e8f0";
   const textColor = theme === "dark" ? "#94a3b8" : "#64748b";
@@ -30,11 +32,17 @@ const TransactionTrendChart = ({ data, currency, interval = 3 }) => {
     );
   }
 
+  const formatted = data.map((d) => ({
+    label: d.label,
+    income: convertAmount(parseFloat(d.income)),
+    expense: convertAmount(parseFloat(d.expense)),
+  }));
+
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          data={data}
+          data={formatted}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         >
           <defs>

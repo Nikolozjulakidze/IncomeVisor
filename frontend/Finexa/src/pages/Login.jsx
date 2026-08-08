@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import AuthHero from "../components/AuthHero.jsx";
 import Spinner from "../components/Spinner.jsx";
 import FinexaLogo from "../components/FinexaLogo.jsx";
@@ -10,6 +11,7 @@ import SocialAuthButtons from "../components/SocialAuthButtons.jsx";
 
 const Login = () => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -20,10 +22,10 @@ const Login = () => {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      toast.success("Welcome back!");
+      toast.success(t("auth.welcomeBack"));
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || t("auth.login"));
     } finally {
       setLoading(false);
     }
@@ -39,16 +41,16 @@ const Login = () => {
         <div className="flex-1 flex items-center justify-center py-10">
           <div className="w-full max-w-md">
             <h2 className="text-4xl font-bold text-text-primary tracking-tight mb-2">
-              Sign In
+              {t("auth.signIn")}
             </h2>
             <p className="text-text-secondary mb-10">
-              Please login to continue
+              {t("auth.loginSubtitle")}
             </p>
 
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-text-primary">
-                  Email
+                  {t("auth.email")}
                 </label>
                 <input
                   type="email"
@@ -62,7 +64,7 @@ const Login = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-text-primary">
-                  Password
+                  {t("auth.password")}
                 </label>
                 <div className="relative">
                   <input
@@ -94,10 +96,10 @@ const Login = () => {
                 {loading ? (
                   <>
                     <Spinner size="sm" />
-                    Signing in...
+                    {t("auth.loggingIn")}
                   </>
                 ) : (
-                  "Login"
+                  t("auth.login")
                 )}
               </button>
             </form>
@@ -105,12 +107,12 @@ const Login = () => {
             <SocialAuthButtons />
 
             <p className="text-center mt-8 text-sm text-text-secondary">
-              No Account Yet?{" "}
+              {t("auth.noAccount")}{" "}
               <Link
                 to="/register"
                 className="font-semibold text-accent hover:text-accent-hover transition"
               >
-                Get Yours Now
+                {t("auth.getYours")}
               </Link>
             </p>
           </div>
@@ -118,13 +120,13 @@ const Login = () => {
 
         <div className="flex justify-start gap-6 text-xs text-text-secondary">
           <a className="hover:text-text-primary transition cursor-pointer">
-            Privacy Policy
+            {t("auth.privacyPolicy")}
           </a>
           <a className="hover:text-text-primary transition cursor-pointer">
-            Terms
+            {t("auth.terms")}
           </a>
           <a className="hover:text-text-primary transition cursor-pointer">
-            FAQ
+            {t("auth.faq")}
           </a>
         </div>
       </div>

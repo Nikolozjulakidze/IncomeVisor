@@ -8,25 +8,29 @@ import {
   MessageSquare,
   Wallet,
   CreditCard,
+  Settings as SettingsIcon,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import FinexaLogo from "./FinexaLogo.jsx";
-
-const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { to: "/categories", label: "Categories", icon: Folder },
-  { to: "/budgets", label: "Budgets", icon: Target },
-  { to: "/cards", label: "Cards", icon: CreditCard },
-  { to: "/bank-connections", label: "Accounts", icon: Wallet },
-  { to: "/insights", label: "AI Insights", icon: Sparkles },
-  { to: "/ai-chat", label: "AI Chat", icon: MessageSquare },
-];
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const initial = user?.name?.[0]?.toUpperCase() || "U";
+
+  const navItems = [
+    { to: "/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { to: "/transactions", label: t("nav.transactions"), icon: ArrowLeftRight },
+    { to: "/categories", label: t("nav.categories"), icon: Folder },
+    { to: "/budgets", label: t("nav.budgets"), icon: Target },
+    { to: "/cards", label: t("nav.cards"), icon: CreditCard },
+    { to: "/bank-connections", label: t("nav.accounts"), icon: Wallet },
+    { to: "/insights", label: t("nav.insights"), icon: Sparkles },
+    { to: "/ai-chat", label: t("nav.chat"), icon: MessageSquare },
+    { to: "/settings", label: t("nav.settings"), icon: SettingsIcon },
+  ];
 
   return (
     <aside className="w-64 bg-sidebar-background hidden lg:flex flex-col shrink-0 p-4 card-style">

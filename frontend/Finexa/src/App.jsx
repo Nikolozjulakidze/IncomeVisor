@@ -10,6 +10,7 @@ import Insights from "./pages/Insights.jsx";
 import AIChat from "./pages/AIChat.jsx";
 import Cards from "./pages/Cards.jsx";
 import BankConnections from "./pages/BankConnections.jsx";
+import Settings from "./pages/Settings.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout.jsx";
 
@@ -34,6 +35,7 @@ const App = () => {
         <Route path="/bank-connections" element={<BankConnections />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/ai-chat" element={<AIChat />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

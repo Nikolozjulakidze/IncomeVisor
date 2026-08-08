@@ -1,6 +1,7 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { formatCurrency } from "../../utils/format.js";
 import CustomTooltip from "./CustomTooltip.jsx";
+import { useCurrency } from "../../hooks/useCurrency.js";
 
 const GRADIENTS = [
   { id: "cat-blue", from: "#60A5FA", to: "#2563EB", solid: "#2563EB" },
@@ -12,6 +13,8 @@ const GRADIENTS = [
 ];
 
 const CategoryBreakdownChart = ({ data, currency }) => {
+  const { convertAmount } = useCurrency();
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-sm text-text-secondary">
@@ -25,7 +28,7 @@ const CategoryBreakdownChart = ({ data, currency }) => {
     const g = GRADIENTS[i % GRADIENTS.length];
     return {
       name: d.category_name,
-      value: parseFloat(d.total),
+      value: convertAmount(parseFloat(d.total)),
       gradientId: g.id,
       solid: g.solid,
     };

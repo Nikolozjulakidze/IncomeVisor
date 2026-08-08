@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, ChevronDown, ArrowLeft, MailCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import AuthHero from "../components/AuthHero.jsx";
 import Spinner from "../components/Spinner.jsx";
 import FinexaLogo from "../components/FinexaLogo.jsx";
@@ -11,6 +12,7 @@ import SocialAuthButtons from "../components/SocialAuthButtons.jsx";
 const CURRENCIES = [
   { value: "USD", label: "USD - US Dollar" },
   { value: "EUR", label: "EUR - Euro" },
+  { value: "GEL", label: "GEL - Georgian Lari" },
   { value: "GBP", label: "GBP - British Pound" },
   { value: "INR", label: "INR - Indian Rupee" },
   { value: "JPY", label: "JPY - Japanese Yen" },
@@ -20,6 +22,7 @@ const CURRENCIES = [
 
 const Register = () => {
   const { sendRegisterOtp, verifyRegisterOtp } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1 = form, 2 = OTP
   const [form, setForm] = useState({
@@ -37,7 +40,7 @@ const Register = () => {
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (form.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("auth.pwShort"));
       return;
     }
     setLoading(true);
@@ -47,7 +50,7 @@ const Register = () => {
       setStep(2);
       setTimeout(() => otpInputRef.current?.focus(), 0);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send code");
+      toast.error(err.response?.data?.message || t("auth.sendCodeFailed"));
     } finally {
       setLoading(false);
     }
@@ -56,16 +59,16 @@ const Register = () => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp || otp.length !== 6) {
-      toast.error("Please enter the 6-digit code");
+      toast.error(t("auth.enterCode"));
       return;
     }
     setLoading(true);
     try {
       await verifyRegisterOtp({ ...form, otp });
-      toast.success("Account created!");
+      toast.success(t("auth.accountCreated"));
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Verification failed");
+      toast.error(err.response?.data?.message || t("auth.verificationFailed"));
     } finally {
       setLoading(false);
     }
@@ -88,16 +91,16 @@ const Register = () => {
             {step === 1 ? (
               <>
                 <h2 className="text-4xl font-bold text-text-primary tracking-tight mb-2">
-                  Sign Up
+                  {t("auth.signUp")}
                 </h2>
                 <p className="text-text-secondary mb-10">
-                  Create your account in seconds
+                  {t("auth.signupSubtitle")}
                 </p>
 
                 <form onSubmit={handleSendOtp} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-text-primary">
-                      Name
+                      {t("auth.name")}
                     </label>
                     <input
                       required
@@ -112,7 +115,7 @@ const Register = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-text-primary">
-                      Email
+                      {t("auth.email")}
                     </label>
                     <input
                       type="email"
@@ -128,7 +131,7 @@ const Register = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-text-primary">
-                      Password
+                      {t("auth.password")}
                     </label>
                     <div className="relative">
                       <input
@@ -140,7 +143,7 @@ const Register = () => {
                           setForm({ ...form, password: e.target.value })
                         }
                         className="input-field w-full rounded-2xl px-5 py-4 pr-12 text-sm placeholder-text-tertiary focus-ring-accent"
-                        placeholder="At least 6 characters"
+                        placeholder={t("settings.password.short")}
                       />
                       <button
                         type="button"
@@ -159,7 +162,7 @@ const Register = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-text-primary">
-                      Currency
+                      {t("auth.currency")}
                     </label>
                     <div className="relative">
                       <select
@@ -190,10 +193,10 @@ const Register = () => {
                     {loading ? (
                       <>
                         <Spinner size="sm" />
-                        Sending code...
+                        {t("auth.sendingCode")}
                       </>
                     ) : (
-                      "Create Account"
+                      t("auth.createAccount")
                     )}
                   </button>
                 </form>
@@ -206,7 +209,7 @@ const Register = () => {
                   className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition mb-6"
                 >
                   <ArrowLeft size={16} />
-                  Back
+                  {t("auth.back")}
                 </button>
 
                 <div className="flex flex-col items-center text-center mb-8">
@@ -214,21 +217,21 @@ const Register = () => {
                     <MailCheck size={32} className="text-accent" />
                   </div>
                   <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-2">
-                    Verify your email
+                    {t("auth.verifyEmail")}
                   </h2>
                   <p className="text-text-secondary">
-                    We sent a 6-digit code to{" "}
+                    {t("auth.verifyDesc")}{" "}
                     <span className="font-semibold text-text-primary">
                       {maskedEmail}
                     </span>
-                    . Enter it below to activate your account.
+                    . {t("auth.verifyDesc2")}
                   </p>
                 </div>
 
                 <form onSubmit={handleVerifyOtp} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-text-primary">
-                      Verification code
+                      {t("auth.verifyCode")}
                     </label>
                     <input
                       ref={otpInputRef}
@@ -252,10 +255,10 @@ const Register = () => {
                     {loading ? (
                       <>
                         <Spinner size="sm" />
-                        Verifying...
+                        {t("auth.verifying")}
                       </>
                     ) : (
-                      "Verify & Sign Up"
+                      t("auth.verifyAndSignup")
                     )}
                   </button>
 
@@ -265,7 +268,7 @@ const Register = () => {
                     disabled={loading}
                     className="w-full text-center text-sm font-semibold text-accent hover:text-accent-hover transition disabled:opacity-60"
                   >
-                    Didn't get the code? Resend
+                    {t("auth.resend")}
                   </button>
                 </form>
               </>
@@ -275,12 +278,12 @@ const Register = () => {
               <>
                 <SocialAuthButtons />
                 <p className="text-center mt-8 text-sm text-text-secondary">
-                  Already have an account?{" "}
+                  {t("auth.alreadyHaveAccount")}{" "}
                   <Link
                     to="/login"
                     className="font-semibold text-accent hover:text-accent-hover transition"
                   >
-                    Sign in
+                    {t("auth.signIn2")}
                   </Link>
                 </p>
               </>
@@ -290,13 +293,13 @@ const Register = () => {
 
         <div className="flex justify-start gap-6 text-xs text-text-secondary">
           <a className="hover:text-text-primary transition cursor-pointer">
-            Privacy Policy
+            {t("auth.privacyPolicy")}
           </a>
           <a className="hover:text-text-primary transition cursor-pointer">
-            Terms
+            {t("auth.terms")}
           </a>
           <a className="hover:text-text-primary transition cursor-pointer">
-            FAQ
+            {t("auth.faq")}
           </a>
         </div>
       </div>

@@ -8,6 +8,27 @@ export const formatCurrency = (amount, currency = "USD") => {
   }).format(value);
 };
 
+// Return the currency symbol for a given ISO currency code (e.g. $, €, ₾).
+export const getCurrencySymbol = (currency = "USD") => {
+  try {
+    return (
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value || currency
+    );
+  } catch {
+    return currency;
+  }
+};
+
+// Format an amount as Georgian Lari (₾).
+export const formatGEL = (amount) => formatCurrency(amount, "GEL");
+
 export const formatDate = (dateStr) => {
   if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("en-US", {

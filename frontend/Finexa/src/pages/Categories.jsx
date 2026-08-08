@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, Folder } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import Button from "../components/ui/Button.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import CategoryBadge from "../components/CategoryBadge.jsx";
@@ -12,6 +13,7 @@ import Spinner from "../components/Spinner.jsx";
 import CategoryForm from "../components/CategoryForm.jsx";
 
 const Categories = () => {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,18 +46,13 @@ const Categories = () => {
   };
 
   const onDelete = async (id) => {
-    if (
-      !confirm(
-        "Delete this category? Transactions in this category will become uncategorized.",
-      )
-    )
-      return;
+    if (!confirm(t("cat.deleteConfirm"))) return;
     try {
       await api.delete(API_PATHS.CATEGORIES.DELETE(id));
-      toast.success("Category deleted");
+      toast.success(t("cat.deleted"));
       fetchCategories();
     } catch (err) {
-      toast.error("Failed to delete");
+      toast.error(t("cat.deleteFailed"));
     }
   };
 
@@ -72,14 +69,12 @@ const Categories = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Categories
+            {t("cat.title")}
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5">
-            Organize transactions by category
-          </p>
+          <p className="text-sm text-slate-500 mt-1.5">{t("cat.subtitle")}</p>
         </div>
         <Button onClick={onCreate}>
-          <Plus size={16} /> Add Category
+          <Plus size={16} /> {t("cat.add")}
         </Button>
       </div>
 
@@ -90,14 +85,14 @@ const Categories = () => {
       ) : categories.length === 0 ? (
         <EmptyState
           icon={Folder}
-          title="No categories"
-          description="Add a category to start organizing your transactions."
+          title={t("cat.noCategories")}
+          description={t("cat.noCategoriesDesc")}
         />
       ) : (
         <>
           {[
-            { label: "Income", items: income },
-            { label: "Expense", items: expense },
+            { label: t("cat.income"), items: income },
+            { label: t("cat.expense"), items: expense },
           ].map((group) => (
             <div key={group.label}>
               <h2 className="font-semibold text-slate-900 mb-3">
@@ -119,7 +114,9 @@ const Categories = () => {
                     />
                     <div className="flex items-center gap-1.5">
                       {c.is_default && (
-                        <StatusPill variant="neutral">default</StatusPill>
+                        <StatusPill variant="neutral">
+                          {t("cat.default")}
+                        </StatusPill>
                       )}
                       <button
                         onClick={() => onEdit(c)}
@@ -145,7 +142,7 @@ const Categories = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit Category" : "New Category"}
+        title={editing ? t("cat.edit") : t("cat.new")}
       >
         <CategoryForm
           initial={editing}

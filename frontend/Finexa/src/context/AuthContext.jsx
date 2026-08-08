@@ -79,6 +79,55 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const updateCurrency = async (currency) => {
+    const res = await api.put(API_PATHS.AUTH.UPDATE_ME, { currency });
+    setUser((prev) => ({ ...prev, currency: res.data.currency }));
+    return res.data;
+  };
+
+  const updateProfile = async ({ name, email, otp }) => {
+    const res = await api.put(API_PATHS.AUTH.UPDATE_PROFILE, {
+      name,
+      email,
+      otp,
+    });
+    setUser((prev) => ({ ...prev, ...res.data }));
+    return res.data;
+  };
+
+  const changePassword = async ({ currentPassword, newPassword }) => {
+    const res = await api.put(API_PATHS.AUTH.CHANGE_PASSWORD, {
+      currentPassword,
+      newPassword,
+    });
+    return res.data;
+  };
+
+  const updateSettings = async ({ language, preferences }) => {
+    const res = await api.put(API_PATHS.AUTH.UPDATE_SETTINGS, {
+      language,
+      preferences,
+    });
+    setUser((prev) => ({ ...prev, ...res.data }));
+    return res.data;
+  };
+
+  const sendEmailChangeOtp = async (email) => {
+    const res = await api.post(API_PATHS.AUTH.SEND_EMAIL_OTP, { email });
+    return res.data;
+  };
+
+  const exportData = async () => {
+    const res = await api.get(API_PATHS.AUTH.EXPORT);
+    return res.data;
+  };
+
+  const deleteAccount = async () => {
+    await api.delete(API_PATHS.AUTH.DELETE_ACCOUNT);
+    localStorage.removeItem("token");
+    setUser(null);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
@@ -96,6 +145,13 @@ export const AuthProvider = ({ children }) => {
         googleLogin,
         sendGoogleOtp,
         verifyGoogleOtp,
+        updateCurrency,
+        updateProfile,
+        changePassword,
+        updateSettings,
+        sendEmailChangeOtp,
+        exportData,
+        deleteAccount,
         logout,
       }}
     >

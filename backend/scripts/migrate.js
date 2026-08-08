@@ -49,6 +49,13 @@ const runMigration = async () => {
     await pool.query(
       "ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255);",
     );
+    // Settings expansion: language + notification preferences
+    await pool.query(
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(2) DEFAULT 'en';",
+    );
+    await pool.query(
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;",
+    );
     await pool.query(
       "CREATE UNIQUE INDEX IF NOT EXISTS users_provider_id_key ON users(provider_id) WHERE provider_id IS NOT NULL;",
     );

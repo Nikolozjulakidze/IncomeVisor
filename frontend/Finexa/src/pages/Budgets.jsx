@@ -12,8 +12,8 @@ import {
 import toast from "react-hot-toast";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
-import { useAuth } from "../context/AuthContext.jsx";
-import { formatCurrency } from "../utils/format.js";
+import { useCurrency } from "../hooks/useCurrency.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import Button from "../components/ui/Button.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import CategoryBadge from "../components/CategoryBadge.jsx";
@@ -21,24 +21,21 @@ import EmptyState from "../components/EmptyState.jsx";
 import Spinner from "../components/Spinner.jsx";
 import BudgetForm from "../components/BudgetForm.jsx";
 
-const statusStyles = {
+const STYLES = {
   good: {
     Icon: CheckCircle2,
-    label: "On Track",
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     iconColor: "text-emerald-600",
   },
   caution: {
     Icon: AlertTriangle,
-    label: "Watch It",
     bg: "bg-amber-50",
     text: "text-amber-700",
     iconColor: "text-amber-600",
   },
   concerning: {
     Icon: AlertOctagon,
-    label: "Over Budget",
     bg: "bg-rose-50",
     text: "text-rose-700",
     iconColor: "text-rose-600",
@@ -59,8 +56,8 @@ const AnalysisSkeleton = () => (
 );
 
 const Budgets = () => {
-  const { user } = useAuth();
-  const currency = user?.currency || "USD";
+  const { format } = useCurrency();
+  const { t } = useLanguage();
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,13 +115,13 @@ const Budgets = () => {
   };
 
   const onDelete = async (id) => {
-    if (!confirm("Delete this budget?")) return;
+    if (!confirm(t("budget.deleteConfirm"))) return;
     try {
       await api.delete(API_PATHS.BUDGETS.DELETE(id));
-      toast.success("Budget deleted");
+      toast.success(t("budget.deleted"));
       fetchData();
     } catch (err) {
-      toast.error("Failed to delete");
+      toast.error(t("budget.deleteFailed"));
     }
   };
 
@@ -141,10 +138,10 @@ const Budgets = () => {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Budgets
+            {t("budget.title")}
           </h1>
           <p className="text-sm text-slate-500 mt-1.5">
-            Set spending limits per category — AI scores each one automatically
+            {t("budget.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -154,10 +151,14 @@ const Budgets = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             {analyzing ? <Spinner size="sm" /> : <Sparkles size={14} />}
-            {analyzing ? "Analyzing" : hasAnalyses ? "Re-analyze" : "Analyze"}
+            {analyzing
+              ? t("budget.analyzing")
+              : hasAnalyses
+                ? t("budget.reanalyze")
+                : t("budget.analyze")}
           </button>
           <Button onClick={onCreate}>
-            <Plus size={16} /> Add Budget
+            <Plus size={16} /> {t("budget.add")}
           </Button>
         </div>
       </div>
@@ -169,8 +170,8 @@ const Budgets = () => {
       ) : budgets.length === 0 ? (
         <EmptyState
           icon={Target}
-          title="No budgets yet"
-          description="Create a budget to track spending limits."
+          title={t("budget.noBudgets")}
+          description={t("budget.noBudgetsDesc")}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -186,7 +187,7 @@ const Budgets = () => {
                   ? "bg-amber-500"
                   : "bg-emerald-500";
             const analysis = analyses[b.id];
-            const style = analysis ? statusStyles[analysis.status] : null;
+            const style = analysis ? STYLES[analysis.status] : null;
 
             return (
               <div
@@ -216,10 +217,10 @@ const Budgets = () => {
                 </div>
                 <div className="mb-3 flex items-baseline justify-between">
                   <span className="text-3xl font-bold tracking-tight text-slate-900">
-                    {formatCurrency(spent, currency)}
+                    {format(spent)}
                   </span>
                   <span className="text-sm text-slate-500">
-                    of {formatCurrency(total, currency)}
+                    {t("budget.of")} {format(total)}
                   </span>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -230,7 +231,7 @@ const Budgets = () => {
                 </div>
                 <div className="mt-2.5 flex items-center justify-between text-xs">
                   <span className="text-slate-500 capitalize">
-                    {b.period} · {pct.toFixed(0)}% used
+                    {b.period} · {pct.toFixed(0)}% {t("budget.used")}
                   </span>
                   <span
                     className={
@@ -238,8 +239,8 @@ const Budgets = () => {
                     }
                   >
                     {over
-                      ? `Over by ${formatCurrency(spent - total, currency)}`
-                      : `${formatCurrency(total - spent, currency)} left`}
+                      ? `${t("budget.overBy")} ${format(spent - total)}`
+                      : `${format(total - spent)} ${t("budget.left")}`}
                   </span>
                 </div>
 
@@ -255,7 +256,7 @@ const Budgets = () => {
                         <span
                           className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${style.bg} ${style.text} mb-1`}
                         >
-                          {style.label}
+                          {t(`budget.status.${analysis.status}`)}
                         </span>
                         <p className="text-xs text-slate-600 leading-relaxed">
                           {analysis.message}
@@ -275,7 +276,7 @@ const Budgets = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit Budget" : "New Budget"}
+        title={editing ? t("budget.edit") : t("budget.new")}
       >
         <BudgetForm
           initial={editing}

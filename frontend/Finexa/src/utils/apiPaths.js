@@ -8,6 +8,13 @@ export const API_PATHS = {
     GOOGLE_SEND_OTP: "/auth/google/send-otp",
     GOOGLE_VERIFY_OTP: "/auth/google/verify",
     ME: "/auth/me",
+    UPDATE_ME: "/auth/me",
+    UPDATE_PROFILE: "/auth/me/profile",
+    CHANGE_PASSWORD: "/auth/me/password",
+    UPDATE_SETTINGS: "/auth/me/settings",
+    EXPORT: "/auth/me/export",
+    DELETE_ACCOUNT: "/auth/me",
+    SEND_EMAIL_OTP: "/auth/me/send-email-otp",
   },
   CATEGORIES: {
     LIST: "/categories",

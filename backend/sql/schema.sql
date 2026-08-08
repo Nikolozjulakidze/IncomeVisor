@@ -5,7 +5,9 @@ CREATE TABLE users (
     password_hash VARCHAR(255),
     provider VARCHAR(50),
     provider_id VARCHAR(255) UNIQUE,
-    currency VARCHAR(3) DEFAULT 'USD',
+currency VARCHAR(3) DEFAULT 'USD',
+    language VARCHAR(2) DEFAULT 'en',
+    preferences JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

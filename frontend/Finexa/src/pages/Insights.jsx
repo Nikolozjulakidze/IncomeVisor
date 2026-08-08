@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 import { timeAgo } from "../utils/format.js";
 import EmptyState from "../components/EmptyState.jsx";
 import Spinner from "../components/Spinner.jsx";
@@ -26,51 +27,57 @@ const ActionCard = ({
   onClick,
   generating,
   lastGenerated,
-}) => (
-  <button
-    onClick={onClick}
-    disabled={generating}
-    className="group relative overflow-hidden bg-white rounded-3xl border border-slate-100 p-6 text-left hover:border-slate-200 hover:shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
-  >
-    <div className="flex items-start justify-between mb-4">
-      <div
-        className={`h-14 w-14 rounded-2xl bg-linear-to-br ${accentGradient} flex items-center justify-center group-hover:scale-105 transition shadow-sm`}
-      >
-        <Icon size={24} className="text-white" />
-      </div>
-      {generating ? (
-        <Spinner size="sm" />
-      ) : (
-        <Sparkles
-          size={16}
-          className="text-slate-300 group-hover:text-violet-500 transition"
-        />
-      )}
-    </div>
-    <h3 className="text-lg font-bold text-slate-900 mb-1.5">{title}</h3>
-    <p className="text-sm text-slate-500 mb-5 leading-relaxed">{description}</p>
-    <div className="flex items-center justify-between">
-      <span
-        className={`inline-flex items-center gap-1.5 text-sm font-semibold ${accentText}`}
-      >
-        {generating ? "Analyzing..." : "Generate Insight"}
-        {!generating && (
-          <ArrowRight
-            size={14}
-            className="group-hover:translate-x-0.5 transition"
+}) => {
+  const { t } = useLanguage();
+  return (
+    <button
+      onClick={onClick}
+      disabled={generating}
+      className="group relative overflow-hidden bg-white rounded-3xl border border-slate-100 p-6 text-left hover:border-slate-200 hover:shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div
+          className={`h-14 w-14 rounded-2xl bg-linear-to-br ${accentGradient} flex items-center justify-center group-hover:scale-105 transition shadow-sm`}
+        >
+          <Icon size={24} className="text-white" />
+        </div>
+        {generating ? (
+          <Spinner size="sm" />
+        ) : (
+          <Sparkles
+            size={16}
+            className="text-slate-300 group-hover:text-violet-500 transition"
           />
         )}
-      </span>
-      {lastGenerated && (
-        <span className="text-xs text-slate-400">
-          Last: {timeAgo(lastGenerated)}
+      </div>
+      <h3 className="text-lg font-bold text-slate-900 mb-1.5">{title}</h3>
+      <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+        {description}
+      </p>
+      <div className="flex items-center justify-between">
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm font-semibold ${accentText}`}
+        >
+          {generating ? t("insights.analyzing") : t("insights.generate")}
+          {!generating && (
+            <ArrowRight
+              size={14}
+              className="group-hover:translate-x-0.5 transition"
+            />
+          )}
         </span>
-      )}
-    </div>
-  </button>
-);
+        {lastGenerated && (
+          <span className="text-xs text-slate-400">
+            {t("insights.last")} {timeAgo(lastGenerated)}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+};
 
 const Insights = () => {
+  const { t } = useLanguage();
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(null);
@@ -81,7 +88,7 @@ const Insights = () => {
       const res = await api.get(API_PATHS.INSIGHTS.LIST);
       setInsights(res.data);
     } catch (err) {
-      toast.error("Failed to load insights");
+      toast.error(t("insights.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -95,10 +102,10 @@ const Insights = () => {
     setGenerating(type);
     try {
       await api.post(API_PATHS.INSIGHTS.GENERATE, { type });
-      toast.success("Insight generated");
+      toast.success(t("insights.generatedToast"));
       fetchInsights();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to generate");
+      toast.error(err.response?.data?.message || t("insights.generateFailed"));
     } finally {
       setGenerating(null);
     }
@@ -140,29 +147,28 @@ const Insights = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-          AI Insights
+          {t("insights.title")}
         </h1>
         <p className="text-sm text-slate-500 mt-1.5">
-          Personalized financial analysis powered by Gemini — generate insights
-          and watch your money smarter
+          {t("insights.subtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Insights generated"
+          label={t("insights.generated")}
           value={stats.total}
           icon={Sparkles}
           accent="violet"
         />
         <KpiCard
-          label="Health score"
+          label={t("insights.healthScore")}
           value={stats.healthScore != null ? `${stats.healthScore}/100` : "—"}
           icon={Activity}
           accent={healthAccent}
         />
         <KpiCard
-          label="Potential savings"
+          label={t("insights.potentialSavings")}
           value={
             stats.potentialSavings > 0
               ? `$${stats.potentialSavings.toFixed(0)}/mo`
@@ -172,7 +178,7 @@ const Insights = () => {
           accent="orange"
         />
         <KpiCard
-          label="Last analysis"
+          label={t("insights.lastAnalysis")}
           value={stats.lastAt ? timeAgo(stats.lastAt) : "—"}
           icon={Clock}
           accent="blue"
@@ -181,8 +187,8 @@ const Insights = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ActionCard
-          title="Monthly Summary"
-          description="A full breakdown of this month's income, expenses, and a personalized health score with actionable recommendations."
+          title={t("insights.monthlySummary")}
+          description={t("insights.monthlySummaryDesc")}
           icon={TrendingUp}
           accentGradient="from-violet-400 to-violet-600"
           accentText="text-violet-600"
@@ -191,8 +197,8 @@ const Insights = () => {
           lastGenerated={stats.latestMonthlyAt}
         />
         <ActionCard
-          title="Savings Tips"
-          description="Tailored, ranked ways to save money based on your top spending categories from the last 30 days."
+          title={t("insights.savingsTips")}
+          description={t("insights.savingsTipsDesc")}
           icon={Lightbulb}
           accentGradient="from-blue-400 to-blue-600"
           accentText="text-blue-600"
@@ -205,12 +211,14 @@ const Insights = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-            Recent Analyses
+            {t("insights.recentAnalyses")}
           </h2>
           {!loading && insights.length > 0 && (
             <span className="text-xs text-slate-500">
               {insights.length}{" "}
-              {insights.length === 1 ? "analysis" : "analyses"}
+              {insights.length === 1
+                ? t("insights.analysis")
+                : t("insights.analyses")}
             </span>
           )}
         </div>
@@ -223,8 +231,8 @@ const Insights = () => {
           <div className="bg-white rounded-3xl border border-slate-100">
             <EmptyState
               icon={Sparkles}
-              title="No insights yet"
-              description="Generate your first AI analysis using one of the cards above."
+              title={t("insights.noInsights")}
+              description={t("insights.noInsightsDesc")}
             />
           </div>
         ) : (

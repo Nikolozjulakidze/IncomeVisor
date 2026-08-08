@@ -1,30 +1,36 @@
-# TODO — Card Connection Feature (Georgian + European Banks)
+# Settings Page Expansion + Full App i18n (EN/KA/RU)
 
-## Goal
+## Backend
 
-Let users connect cards to their real banks (Bank of Georgia, TBC via PSD2 OAuth, and Paysera as a European connector) so connected cards appear in the Cards page with a "live" badge, alongside manually-added cards.
+- [x] Migration: add `language` + `preferences` columns to users
+- [x] authController: updateProfile (name + email w/ OTP)
+- [x] authController: changePassword
+- [x] authController: updateSettings (language + notification prefs)
+- [x] authController: exportData
+- [x] authController: deleteAccount
+- [x] authController: sendEmailChangeOtp
+- [x] authRoutes: wire new endpoints
 
-## Steps
+## Frontend i18n infra
 
-### Backend
+- [x] utils/i18n.js (EN/KA/RU dictionaries + t())
+- [x] context/LanguageContext.jsx
+- [x] Wire LanguageContext into main.jsx / App.jsx
 
-- [ ] 1. Add `paysera` provider config to `backend/services/bankService.js`
-- [ ] 2. Add `paysera` to `providerConfigs` in `backend/controllers/accountsController.js` (optional cleanup)
-- [ ] 3. Extend `syncConnection` in `backend/controllers/bankController.js` to capture card info from linked bank accounts into the `cards` table
-- [ ] 4. Add migration in `backend/scripts/migrate.js` + `backend/sql/schema.sql` for new card columns (`provider`, `provider_card_id`, `connection_id`)
-- [ ] 5. Add endpoint to link/expose connected cards in `cardController.js` / `cardRoutes.js`
+## Settings page
 
-### Frontend
+- [x] Rebuild Settings.jsx with tabs (Profile, Password, Notifications, Language, Data & Privacy)
+- [x] AuthContext: add updateProfile, changePassword, updateSettings, exportData, deleteAccount, sendEmailChangeOtp
+- [x] apiPaths: add new endpoints
 
-- [ ] 6. Update `Cards.jsx` with a "Connect card" flow (OAuth link for BOG/TBC/Paysera) + connected badge
-- [ ] 7. Update `CardForm.jsx` to support connection type (Manual / Bank-linked)
-- [ ] 8. Add new API paths in `frontend/Finexa/src/utils/apiPaths.js`
+## Translate app (full EN/KA/RU)
 
-### Docs
+- [ ] Starter, Login, Register
+- [ ] Dashboard, Transactions, Categories, Budgets
+- [ ] Cards, Insights, AIChat, BankConnections
+- [x] Components (Sidebar, Topbar)
 
-- [ ] 9. Update `README.md` with credential setup + how card connection works
+## Verify
 
-## Notes
-
-- Full auto-connection of Georgian cards requires live Bank of Georgia / TBC PSD2 merchant credentials.
-- Paysera provides European open-banking once you have its API contract/credentials.
+- [ ] Frontend build
+- [ ] Backend sanity check

@@ -13,7 +13,9 @@ import {
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { formatCurrency, formatDate } from "../utils/format.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
+import { useCurrency } from "../hooks/useCurrency.js";
+import { formatDate } from "../utils/format.js";
 import KpiCard from "../components/KpiCard.jsx";
 import CategoryBadge from "../components/CategoryBadge.jsx";
 import MonthlyTrendChart from "../components/charts/MonthlyTrendChart.jsx";
@@ -33,7 +35,9 @@ const brandIcons = {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const currency = user?.currency || "USD";
+  const { format } = useCurrency();
   const [summary, setSummary] = useState(null);
   const [trend, setTrend] = useState([]);
   const [breakdown, setBreakdown] = useState([]);
@@ -86,41 +90,40 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-          Dashboard
+          {t("dashboard.title")}
         </h1>
         <p className="text-sm text-slate-500 mt-1.5">
-          An overview of your finances this month
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Balance"
-          value={formatCurrency(
+          label={t("dashboard.balance")}
+          value={format(
             typeof summary.accountBalance === "number"
               ? summary.accountBalance
               : summary.balance,
-            currency,
           )}
           icon={Wallet}
           accent="violet"
         />
         <KpiCard
-          label="Income"
-          value={formatCurrency(summary.incomeThisMonth, currency)}
+          label={t("dashboard.income")}
+          value={format(summary.incomeThisMonth)}
           delta={summary.incomeDelta}
           icon={TrendingUp}
           accent="orange"
         />
         <KpiCard
-          label="Expenses"
-          value={formatCurrency(summary.expenseThisMonth, currency)}
+          label={t("dashboard.expenses")}
+          value={format(summary.expenseThisMonth)}
           delta={summary.expenseDelta}
           icon={TrendingDown}
           accent="rose"
         />
         <KpiCard
-          label="Savings Rate"
+          label={t("dashboard.savingsRate")}
           value={`${summary.savingsRate.toFixed(1)}%`}
           icon={PiggyBank}
           accent="blue"
@@ -131,10 +134,10 @@ const Dashboard = () => {
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6">
           <div className="mb-5">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Monthly Trend
+              {t("dashboard.monthlyTrend")}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Income vs expenses, last 6 months
+              {t("dashboard.monthlyTrendSub")}
             </p>
           </div>
           <MonthlyTrendChart data={trend} currency={currency} />
@@ -142,9 +145,11 @@ const Dashboard = () => {
         <div className="bg-white rounded-3xl border border-slate-100 p-6">
           <div className="mb-5">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Top Categories
+              {t("dashboard.topCategories")}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">Spending this month</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {t("dashboard.topCategoriesSub")}
+            </p>
           </div>
           <CategoryBreakdownChart data={breakdown} currency={currency} />
         </div>
@@ -154,19 +159,19 @@ const Dashboard = () => {
         <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-100 p-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Recent Transactions
+              {t("dashboard.recentTransactions")}
             </h2>
             <Link
               to="/transactions"
               className="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 transition"
             >
-              View all
+              {t("dashboard.viewAll")}
               <ArrowRight size={14} />
             </Link>
           </div>
           {recent.length === 0 ? (
             <p className="text-sm text-slate-500 py-6 text-center">
-              No transactions yet.
+              {t("dashboard.noTransactions")}
             </p>
           ) : (
             <div className="space-y-1">
@@ -183,10 +188,12 @@ const Dashboard = () => {
                     />
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-slate-900 truncate">
-                        {t.description || t.category_name || "Untitled"}
+                        {t.description ||
+                          t.category_name ||
+                          t("dashboard.untitled")}
                       </div>
                       <div className="text-xs text-slate-500">
-                        {t.category_name || "Uncategorized"} ·{" "}
+                        {t.category_name || t("dashboard.uncategorized")} ·{" "}
                         {formatDate(t.transaction_date)}
                         {t.card_name && (
                           <span className="ml-1.5 flex items-center gap-1">
@@ -206,7 +213,7 @@ const Dashboard = () => {
                     }`}
                   >
                     {t.type === "income" ? "+" : "-"}
-                    {formatCurrency(t.amount, currency)}
+                    {format(t.amount)}
                   </span>
                 </div>
               ))}
@@ -217,13 +224,13 @@ const Dashboard = () => {
         <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 p-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Budget Status
+              {t("dashboard.budgetStatus")}
             </h2>
             <Link
               to="/budgets"
               className="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 transition"
             >
-              View all
+              {t("dashboard.viewAll")}
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -234,13 +241,13 @@ const Dashboard = () => {
                 <Target size={20} className="text-slate-400" />
               </div>
               <p className="text-sm font-semibold text-slate-900 mb-1">
-                No budgets yet
+                {t("dashboard.noBudgets")}
               </p>
               <Link
                 to="/budgets"
                 className="text-xs text-violet-600 font-medium hover:text-violet-700"
               >
-                Create one →
+                {t("dashboard.createOne")} →
               </Link>
             </div>
           ) : (
@@ -249,10 +256,11 @@ const Dashboard = () => {
                 <div className="flex items-baseline justify-between mb-2">
                   <div>
                     <div className="text-2xl font-bold tracking-tight text-slate-900">
-                      {formatCurrency(totalSpent, currency)}
+                      {format(totalSpent)}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      of {formatCurrency(totalBudget, currency)} total
+                      {t("dashboard.of")} {format(totalBudget)}{" "}
+                      {t("dashboard.total")}
                     </div>
                   </div>
                   <div className="text-right">
@@ -262,7 +270,9 @@ const Dashboard = () => {
                     >
                       {aggPct.toFixed(0)}%
                     </div>
-                    <div className="text-[10px] text-slate-500">used</div>
+                    <div className="text-[10px] text-slate-500">
+                      {t("dashboard.used")}
+                    </div>
                   </div>
                 </div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -291,8 +301,7 @@ const Dashboard = () => {
                           {b.category_name}
                         </span>
                         <span className="text-slate-500 shrink-0 ml-2 text-[11px]">
-                          {formatCurrency(spent, currency)} /{" "}
-                          {formatCurrency(total, currency)}
+                          {format(spent)} / {format(total)}
                         </span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -314,13 +323,13 @@ const Dashboard = () => {
         <div className="bg-white rounded-3xl border border-slate-100 p-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              Your Cards
+              {t("dashboard.yourCards")}
             </h2>
             <Link
               to="/cards"
               className="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 transition"
             >
-              Manage cards
+              {t("dashboard.manageCards")}
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -348,7 +357,9 @@ const Dashboard = () => {
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-medium opacity-80 uppercase">
-                        {isCredit ? "Credit" : "Debit"} Card
+                        {isCredit
+                          ? t("dashboard.creditCard")
+                          : t("dashboard.debitCard")}
                       </span>
                       {card.is_default && (
                         <Star

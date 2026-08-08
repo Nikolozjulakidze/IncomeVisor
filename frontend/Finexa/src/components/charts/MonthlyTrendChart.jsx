@@ -11,9 +11,11 @@ import {
 } from "recharts";
 import { formatMonth, formatCurrency } from "../../utils/format.js";
 import { ThemeContext } from "../../context/ThemeContext.jsx";
+import { useCurrency } from "../../hooks/useCurrency.js";
 
 const MonthlyTrendChart = ({ data, currency }) => {
   const { theme } = useContext(ThemeContext);
+  const { convertAmount } = useCurrency();
 
   const gridColor = theme === "dark" ? "#334155" : "#e2e8f0";
   const textColor = theme === "dark" ? "#94a3b8" : "#64748b";
@@ -35,8 +37,8 @@ const MonthlyTrendChart = ({ data, currency }) => {
 
   const formatted = data.map((d) => ({
     month: formatMonth(d.month),
-    income: parseFloat(d.income),
-    expense: parseFloat(d.expense),
+    income: convertAmount(parseFloat(d.income)),
+    expense: convertAmount(parseFloat(d.expense)),
   }));
 
   return (
