@@ -5,7 +5,6 @@ export const getTransactions = async (req, res) => {
     startDate,
     endDate,
     categoryId,
-    cardId,
     type,
     search,
     limit = 50,
@@ -28,10 +27,6 @@ export const getTransactions = async (req, res) => {
     conditions.push(`t.category_id = $${idx++}`);
     values.push(categoryId);
   }
-  if (cardId) {
-    conditions.push(`t.card_id = $${idx++}`);
-    values.push(cardId);
-  }
   if (type) {
     conditions.push(`t.type = $${idx++}`);
     values.push(type);
@@ -49,16 +44,9 @@ export const getTransactions = async (req, res) => {
       `SELECT t.*,
               c.name AS category_name,
               c.icon AS category_icon,
-              c.color AS category_color,
-              cr.name AS card_name,
-              cr.type AS card_type,
-              cr.bank AS card_bank,
-              cr.brand AS card_brand,
-              cr.last_four AS card_last_four,
-              cr.color AS card_color
+              c.color AS category_color
        FROM transactions t
        LEFT JOIN categories c ON t.category_id = c.id
-       LEFT JOIN cards cr ON t.card_id = cr.id
        WHERE ${conditions.join(" AND ")}
        ORDER BY t.transaction_date DESC, t.id DESC
        LIMIT $${idx++} OFFSET $${idx}`,
@@ -72,15 +60,8 @@ export const getTransactions = async (req, res) => {
 };
 
 export const createTransaction = async (req, res) => {
-  const {
-    categoryId,
-    cardId,
-    amount,
-    type,
-    description,
-    notes,
-    transactionDate,
-  } = req.body;
+  const { categoryId, amount, type, description, notes, transactionDate } =
+    req.body;
 
   if (!amount || !type || !transactionDate) {
     return res
@@ -93,13 +74,12 @@ export const createTransaction = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO transactions (user_id, category_id, card_id, amount, type, description, notes, transaction_date)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO transactions (user_id, category_id, amount, type, description, notes, transaction_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         req.userId,
         categoryId || null,
-        cardId || null,
         amount,
         type,
         description || null,
@@ -122,16 +102,9 @@ export const getTransactionById = async (req, res) => {
       `SELECT t.*,
               c.name AS category_name,
               c.icon AS category_icon,
-              c.color AS category_color,
-              cr.name AS card_name,
-              cr.type AS card_type,
-              cr.bank AS card_bank,
-              cr.brand AS card_brand,
-              cr.last_four AS card_last_four,
-              cr.color AS card_color
+              c.color AS category_color
        FROM transactions t
        LEFT JOIN categories c ON t.category_id = c.id
-       LEFT JOIN cards cr ON t.card_id = cr.id
        WHERE t.id = $1 AND t.user_id = $2`,
       [id, req.userId],
     );
@@ -149,31 +122,22 @@ export const getTransactionById = async (req, res) => {
 
 export const updateTransaction = async (req, res) => {
   const { id } = req.params;
-  const {
-    categoryId,
-    cardId,
-    amount,
-    type,
-    description,
-    notes,
-    transactionDate,
-  } = req.body;
+  const { categoryId, amount, type, description, notes, transactionDate } =
+    req.body;
 
   try {
     const result = await pool.query(
       `UPDATE transactions
        SET category_id = COALESCE($1, category_id),
-           card_id = COALESCE($2, card_id),
-           amount = COALESCE($3, amount),
-           type = COALESCE($4, type),
-           description = COALESCE($5, description),
-           notes = COALESCE($6, notes),
-           transaction_date = COALESCE($7, transaction_date)
-       WHERE id = $8 AND user_id = $9
+           amount = COALESCE($2, amount),
+           type = COALESCE($3, type),
+           description = COALESCE($4, description),
+           notes = COALESCE($5, notes),
+           transaction_date = COALESCE($6, transaction_date)
+       WHERE id = $7 AND user_id = $8
        RETURNING *`,
       [
         categoryId,
-        cardId,
         amount,
         type,
         description,

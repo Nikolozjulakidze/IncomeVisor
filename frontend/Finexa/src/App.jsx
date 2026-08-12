@@ -8,7 +8,6 @@ import Categories from "./pages/Categories.jsx";
 import Budgets from "./pages/Budgets.jsx";
 import Insights from "./pages/Insights.jsx";
 import AIChat from "./pages/AIChat.jsx";
-import Cards from "./pages/Cards.jsx";
 import BankConnections from "./pages/BankConnections.jsx";
 import Settings from "./pages/Settings.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -31,7 +30,6 @@ const App = () => {
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/budgets" element={<Budgets />} />
-        <Route path="/cards" element={<Cards />} />
         <Route path="/bank-connections" element={<BankConnections />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/ai-chat" element={<AIChat />} />

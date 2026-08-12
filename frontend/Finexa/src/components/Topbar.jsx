@@ -1,64 +1,47 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Bell, Search } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 import ThemeToggleButton from "./ThemeToggleButton.jsx";
 
-const greeting = () => {
+const getGreetingKey = () => {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return "topbar.greeting.morning";
+  if (h < 18) return "topbar.greeting.afternoon";
+  return "topbar.greeting.evening";
 };
 
-const formatToday = () =>
-  new Date().toLocaleDateString("en-US", {
+const formatToday = (lang) =>
+  new Date().toLocaleDateString(lang, {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
 
-const Topbar = () => {
+const Topbar = ({ toggleSidebar }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
+  const { t, lang } = useLanguage();
   const firstName = user?.name?.split(" ")[0] || "";
-
-  const handleSearch = (e) => {
-    if (e.key === "Enter") {
-      const q = query.trim();
-      navigate(
-        q ? `/transactions?search=${encodeURIComponent(q)}` : "/transactions",
-      );
-    }
-  };
 
   return (
     <header className="h-20 bg-surface border-b border-border-color flex items-center justify-between px-6 shrink-0">
-      <div>
-        <div className="text-lg font-semibold text-text-primary tracking-tight">
-          {greeting()}
-          {firstName && `, ${firstName}`} 👋
+      <div className="flex items-center gap-3">
+        <button
+          className="lg:hidden text-text-secondary hover:text-text-primary transition"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={20} />
+        </button>
+        <div>
+          <div className="text-lg font-semibold text-text-primary tracking-tight">
+            {t(getGreetingKey())}
+            {firstName && `, ${firstName}`} 👋
+          </div>
+          <div className="text-xs text-text-secondary">{formatToday(lang)}</div>
         </div>
-        <div className="text-xs text-text-secondary">{formatToday()}</div>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative hidden sm:block">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleSearch}
-            placeholder={t("topbar.search")}
-            className="px-4 py-2 pr-10 rounded-full input-field text-sm focus-ring-accent w-80"
-          />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text-tertiary">
-            <Search size={16} />
-          </div>
-        </div>
-
         <ThemeToggleButton />
         <button
           title={t("topbar.notifications")}

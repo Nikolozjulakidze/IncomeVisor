@@ -8,12 +8,11 @@ import Select from "./ui/Select.jsx";
 import Textarea from "./ui/Textarea.jsx";
 import Button from "./ui/Button.jsx";
 
-const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
+const TransactionForm = ({ initial, categories, onSaved, onCancel }) => {
   const [form, setForm] = useState({
     type: initial?.type || "expense",
     amount: initial?.amount || "",
     categoryId: initial?.category_id || "",
-    cardId: initial?.card_id || "",
     description: initial?.description || "",
     notes: initial?.notes || "",
     transactionDate:
@@ -22,7 +21,6 @@ const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
   const [saving, setSaving] = useState(false);
 
   const filteredCategories = categories.filter((c) => c.type === form.type);
-  const filteredCards = cards.filter((c) => c.type === form.type);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -32,7 +30,6 @@ const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
         type: form.type,
         amount: parseFloat(form.amount),
         categoryId: form.categoryId || null,
-        cardId: form.cardId || null,
         description: form.description || null,
         notes: form.notes || null,
         transactionDate: form.transactionDate,
@@ -57,9 +54,7 @@ const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() =>
-            setForm({ ...form, type: "expense", categoryId: "", cardId: "" })
-          }
+          onClick={() => setForm({ ...form, type: "expense", categoryId: "" })}
           className={`py-2 px-4 rounded-xl text-sm font-semibold transition ${
             form.type === "expense"
               ? "bg-rose-600 text-white"
@@ -70,9 +65,7 @@ const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
         </button>
         <button
           type="button"
-          onClick={() =>
-            setForm({ ...form, type: "income", categoryId: "", cardId: "" })
-          }
+          onClick={() => setForm({ ...form, type: "income", categoryId: "" })}
           className={`py-2 px-4 rounded-xl text-sm font-semibold transition ${
             form.type === "income"
               ? "bg-emerald-600 text-white"
@@ -105,21 +98,6 @@ const TransactionForm = ({ initial, categories, cards, onSaved, onCancel }) => {
           </option>
         ))}
       </Select>
-
-      {filteredCards.length > 0 && (
-        <Select
-          label="Card (optional)"
-          value={form.cardId}
-          onChange={(e) => setForm({ ...form, cardId: e.target.value })}
-        >
-          <option value="">No card</option>
-          {filteredCards.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} {c.last_four ? `•${c.last_four}` : ""}
-            </option>
-          ))}
-        </Select>
-      )}
 
       <Input
         label="Description"

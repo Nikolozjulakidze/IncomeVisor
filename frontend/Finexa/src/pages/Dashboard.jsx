@@ -7,8 +7,6 @@ import {
   PiggyBank,
   ArrowRight,
   Target,
-  CreditCard,
-  Star,
 } from "lucide-react";
 import api from "../lib/axios.js";
 import { API_PATHS } from "../utils/apiPaths.js";
@@ -22,17 +20,6 @@ import MonthlyTrendChart from "../components/charts/MonthlyTrendChart.jsx";
 import CategoryBreakdownChart from "../components/charts/CategoryBreakdownChart.jsx";
 import Spinner from "../components/Spinner.jsx";
 
-const brandIcons = {
-  Visa: "💳",
-  Mastercard: "💳",
-  "American Express": "💳",
-  Discover: "💳",
-  JCB: "💳",
-  "Diners Club": "💳",
-  UnionPay: "💳",
-  Mir: "💳",
-};
-
 const Dashboard = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -43,26 +30,23 @@ const Dashboard = () => {
   const [breakdown, setBreakdown] = useState([]);
   const [recent, setRecent] = useState([]);
   const [budgets, setBudgets] = useState([]);
-  const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [s, t, b, r, bd, cr] = await Promise.all([
+        const [s, t, b, r, bd] = await Promise.all([
           api.get(API_PATHS.DASHBOARD.SUMMARY),
           api.get(API_PATHS.DASHBOARD.MONTHLY_TREND),
           api.get(API_PATHS.DASHBOARD.CATEGORY_BREAKDOWN),
           api.get(API_PATHS.TRANSACTIONS.LIST, { params: { limit: 5 } }),
           api.get(API_PATHS.BUDGETS.LIST),
-          api.get(API_PATHS.CARDS.LIST),
         ]);
         setSummary(s.data);
         setTrend(t.data);
         setBreakdown(b.data);
         setRecent(r.data);
         setBudgets(bd.data);
-        setCards(cr.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -195,13 +179,6 @@ const Dashboard = () => {
                       <div className="text-xs text-slate-500">
                         {t.category_name || t("dashboard.uncategorized")} ·{" "}
                         {formatDate(t.transaction_date)}
-                        {t.card_name && (
-                          <span className="ml-1.5 flex items-center gap-1">
-                            <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                            <CreditCard size={10} />
-                            {t.card_name}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -318,70 +295,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
-      {cards.length > 0 && (
-        <div className="bg-white rounded-3xl border border-slate-100 p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-              {t("dashboard.yourCards")}
-            </h2>
-            <Link
-              to="/cards"
-              className="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 transition"
-            >
-              {t("dashboard.manageCards")}
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cards.slice(0, 6).map((card) => {
-              const color = card.color || "#6366F1";
-              const brand = card.brand || "Card";
-              const lastFour = card.last_four || "----";
-              const displayName = card.name || "Unnamed Card";
-              const bank = card.bank || "";
-              const isCredit = card.type === "credit";
-
-              return (
-                <div
-                  key={card.id}
-                  className="relative rounded-2xl p-4 text-white shadow-lg overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${color}1A 0%, ${color} 100%)`,
-                    borderColor: color,
-                  }}
-                >
-                  <div className="absolute top-3 right-3 opacity-20">
-                    {brandIcons[brand] || "💳"}
-                  </div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium opacity-80 uppercase">
-                        {isCredit
-                          ? t("dashboard.creditCard")
-                          : t("dashboard.debitCard")}
-                      </span>
-                      {card.is_default && (
-                        <Star
-                          size={12}
-                          className="text-yellow-300 fill-current"
-                        />
-                      )}
-                    </div>
-                    <div className="text-lg font-bold mb-1">{displayName}</div>
-                    {bank && (
-                      <div className="text-xs opacity-80 mb-2">{bank}</div>
-                    )}
-                    <div className="font-mono text-sm tracking-wider">
-                      •••• •••• •••• {lastFour}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

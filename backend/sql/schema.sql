@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -11,7 +11,7 @@ currency VARCHAR(3) DEFAULT 'USD',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE email_otps (
+CREATE TABLE IF NOT EXISTS email_otps (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     otp VARCHAR(6) NOT NULL,
@@ -19,9 +19,9 @@ CREATE TABLE email_otps (
     used BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX idx_email_otps_email ON email_otps(email);
+CREATE INDEX IF NOT EXISTS idx_email_otps_email ON email_otps(email);
 
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
@@ -33,25 +33,7 @@ CREATE TABLE categories (
     UNIQUE (user_id,name,type)
 );
 
-CREATE TABLE cards (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(10) NOT NULL CHECK (type IN('credit','debit')),
-    bank VARCHAR(100),
-    brand VARCHAR(30),
-    last_four VARCHAR(4),
-    color VARCHAR(7) DEFAULT '#6366F1',
-    is_default BOOLEAN DEFAULT FALSE,
-    provider VARCHAR(50),
-    provider_card_id VARCHAR(255),
-    connection_id INT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_cards_user ON cards(user_id);
-
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     provider VARCHAR(100) NOT NULL,
@@ -63,7 +45,7 @@ CREATE TABLE accounts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE bank_connections (
+CREATE TABLE IF NOT EXISTS bank_connections (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     provider VARCHAR(50) NOT NULL,
@@ -81,7 +63,7 @@ CREATE TABLE bank_connections (
     UNIQUE(user_id, provider, provider_connection_id)
 );
 
-CREATE TABLE bank_accounts (
+CREATE TABLE IF NOT EXISTS bank_accounts (
     id SERIAL PRIMARY KEY,
     connection_id INT NOT NULL REFERENCES bank_connections(id) ON DELETE CASCADE,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -97,11 +79,10 @@ CREATE TABLE bank_accounts (
     UNIQUE(connection_id, provider_account_id)
 );
 
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     category_id INT REFERENCES categories(id) ON DELETE SET NULL,
-    card_id INT REFERENCES cards(id) ON DELETE SET NULL,
     account_id INT REFERENCES accounts(id) ON DELETE SET NULL,
     provider VARCHAR(50),
     provider_account_id VARCHAR(255),
@@ -115,7 +96,7 @@ CREATE TABLE transactions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE bank_transactions (
+CREATE TABLE IF NOT EXISTS bank_transactions (
     id SERIAL PRIMARY KEY,
     connection_id INT NOT NULL REFERENCES bank_connections(id) ON DELETE CASCADE,
     account_id INT REFERENCES bank_accounts(id) ON DELETE SET NULL,
@@ -133,11 +114,10 @@ CREATE TABLE bank_transactions (
     UNIQUE(connection_id, provider_transaction_id)
 );
 
-CREATE INDEX idx_txn_user_date ON transactions(user_id,transaction_date DESC);
-CREATE INDEX idx_txn_category ON transactions(category_id);
-CREATE INDEX idx_txn_card ON transactions(card_id);
+CREATE INDEX IF NOT EXISTS idx_txn_user_date ON transactions(user_id,transaction_date DESC);
+CREATE INDEX IF NOT EXISTS idx_txn_category ON transactions(category_id);
 
-CREATE TABLE budgets (
+CREATE TABLE IF NOT EXISTS budgets (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
@@ -148,7 +128,7 @@ CREATE TABLE budgets (
     UNIQUE (user_id,category_id,period)
 );
 
-CREATE TABLE ai_insights (
+CREATE TABLE IF NOT EXISTS ai_insights (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     insight_type VARCHAR(50) NOT NULL,
@@ -158,4 +138,4 @@ CREATE TABLE ai_insights (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_insights_user_created ON ai_insights(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_insights_user_created ON ai_insights(user_id, created_at DESC);

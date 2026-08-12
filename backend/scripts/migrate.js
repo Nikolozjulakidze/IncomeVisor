@@ -16,7 +16,6 @@ const DROP_ALL = `
     DROP TABLE IF EXISTS budgets CASCADE;
     DROP TABLE IF EXISTS transactions CASCADE;
     DROP TABLE IF EXISTS accounts CASCADE;
-    DROP TABLE IF EXISTS cards CASCADE;
     DROP TABLE IF EXISTS categories CASCADE;
     DROP TABLE IF EXISTS users CASCADE;
 `;
@@ -74,19 +73,9 @@ const runMigration = async () => {
       "CREATE INDEX IF NOT EXISTS idx_email_otps_email ON email_otps(email);",
     );
 
-    // Card linking: add provider + connection linkage columns
-    await pool.query(
-      "ALTER TABLE cards ADD COLUMN IF NOT EXISTS provider VARCHAR(50);",
-    );
-    await pool.query(
-      "ALTER TABLE cards ADD COLUMN IF NOT EXISTS provider_card_id VARCHAR(255);",
-    );
-    await pool.query(
-      "ALTER TABLE cards ADD COLUMN IF NOT EXISTS connection_id INT REFERENCES bank_connections(id) ON DELETE SET NULL;",
-    );
-    await pool.query(
-      "CREATE UNIQUE INDEX IF NOT EXISTS cards_user_provider_card_key ON cards (user_id, provider, provider_card_id) WHERE provider IS NOT NULL AND provider_card_id IS NOT NULL;",
-    );
+    // Cards feature removed (Plaid-only): drop the legacy table + column idempotently
+    await pool.query("ALTER TABLE transactions DROP COLUMN IF EXISTS card_id;");
+    await pool.query("DROP TABLE IF EXISTS cards CASCADE;");
 
     console.log("Migration complete. Tables created.");
   } catch (error) {

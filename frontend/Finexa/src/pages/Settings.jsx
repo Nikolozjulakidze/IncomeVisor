@@ -15,6 +15,7 @@ import {
   KeyRound,
   Eye,
   EyeOff,
+  PiggyBank,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
@@ -38,6 +39,7 @@ const TABS = [
   { id: "profile", icon: User },
   { id: "notifications", icon: Bell },
   { id: "language", icon: Globe },
+  { id: "currency", icon: PiggyBank },
   { id: "data", icon: Shield },
 ];
 
@@ -438,7 +440,7 @@ const Settings = () => {
                 {t("settings.password.desc")}
               </p>
               <div className="space-y-4">
-<div className="space-y-1.5">
+                <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-slate-700">
                     {t("settings.password.current")}
                   </label>
@@ -453,7 +455,9 @@ const Settings = () => {
                       type="button"
                       onClick={() => setShowCurrent((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
-                      aria-label={showCurrent ? "Hide password" : "Show password"}
+                      aria-label={
+                        showCurrent ? "Hide password" : "Show password"
+                      }
                     >
                       {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -495,9 +499,14 @@ const Settings = () => {
                       type="button"
                       onClick={() => setShowConfirm((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
-                      aria-label={showConfirm ? "Hide password" : "Show password"}
+                      aria-label={
+                        showConfirm ? "Hide password" : "Show password"
+                      }
                     >
                       {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
                 <Button onClick={handlePasswordChange} disabled={pwSaving}>
                   {pwSaving ? (
                     <>
@@ -597,7 +606,7 @@ const Settings = () => {
                     key={langOpt.value}
                     className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition ${
                       pendingLang === langOpt.value
-                        ? "border-violet-500 bg-violet-50"
+                        ? "border-violet-500 bg-black-50"
                         : "border-slate-100 bg-slate-50/50 hover:bg-slate-50"
                     }`}
                   >
@@ -617,6 +626,77 @@ const Settings = () => {
               </div>
               <Button onClick={handleLanguageSave} className="mt-5">
                 {t("settings.save")}
+              </Button>
+            </div>
+          )}
+
+          {/* ===== CURRENCY ===== */}
+          {activeTab === "currency" && (
+            <div className="max-w-xl">
+              <SectionTitle
+                icon={PiggyBank}
+                title={t("settings.currency")}
+                desc=""
+              />
+              <p className="text-sm text-slate-500 mb-4">
+                {t("settings.currency.desc")}
+              </p>
+
+              {/* Current currency display */}
+              <div className="mb-5 p-4 rounded-2xl border border-black-100 bg-slate-50/50">
+                <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  {t("settings.currency.current")}
+                </div>
+                <div className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <span>{getCurrencySymbol(currency)}</span>
+                  <span>{currency}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {CURRENCIES.map((c) => (
+                  <label
+                    key={c.value}
+                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition ${
+                      currency === c.value
+                        ? "border-violet-500 bg-black-50"
+                        : "border-black-100 bg-slate-50/50 hover:bg-black-50"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="currency"
+                      checked={currency === c.value}
+                      onChange={() => setCurrency(c.value)}
+                      className="accent-violet-600"
+                    />
+                    <span className="text-xl">
+                      {getCurrencySymbol(c.value)}
+                    </span>
+                    <span className="font-medium text-slate-700">
+                      {c.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <Button
+                onClick={handleCurrencySave}
+                disabled={saving}
+                className="mt-5"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {t("settings.saving")}
+                  </>
+                ) : saved ? (
+                  <>
+                    <Check size={16} />
+                    {t("settings.saved")}
+                  </>
+                ) : (
+                  t("settings.currency.save")
+                )}
               </Button>
             </div>
           )}
@@ -661,7 +741,7 @@ const Settings = () => {
                     {t("settings.data.delete")}
                   </span>
                 </div>
-                <p className="text-sm text-slate-600 mb-3">
+                <p className="text-sm text-red-600 mb-3">
                   {t("settings.data.deleteDesc")}
                 </p>
                 <Button variant="danger" onClick={() => setDeleteOpen(true)}>

@@ -1,0 +1,20 @@
+[2026-08-11T13:41:59.967Z] WARN [chat-panel] Panel created/revived — setting webview HTML (4066 chars, sessionId=(new))
+[2026-08-11T13:41:59.984Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:42:00.243Z] WARN [idle-diag] handleMessage IN type=ready disposed=false generating=false turnStreamActive=false aborted=no-ctrl hasSession=false pausedForQuestion=none hostHidden=false readySignalled=false
+[2026-08-11T13:42:31.516Z] WARN [chat-panel] Panel created/revived — setting webview HTML (4066 chars, sessionId=(new))
+[2026-08-11T13:42:31.526Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:42:32.000Z] WARN [idle-diag] handleMessage IN type=ready disposed=false generating=false turnStreamActive=false aborted=no-ctrl hasSession=false pausedForQuestion=none hostHidden=false readySignalled=false
+[2026-08-11T13:48:51.295Z] WARN [chat-panel] Panel created/revived — setting webview HTML (4066 chars, sessionId=(new))
+[2026-08-11T13:48:51.310Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:48:51.426Z] WARN [idle-diag] handleMessage IN type=ready disposed=false generating=false turnStreamActive=false aborted=no-ctrl hasSession=false pausedForQuestion=none hostHidden=false readySignalled=false
+[2026-08-11T13:48:53.697Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:48:55.790Z] WARN [chat-panel] Panel created/revived — setting webview HTML (4066 chars, sessionId=(new))
+[2026-08-11T13:48:55.804Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:48:55.854Z] WARN [idle-diag] handleMessage IN type=ready disposed=false generating=false turnStreamActive=false aborted=no-ctrl hasSession=false pausedForQuestion=none hostHidden=false readySignalled=false
+[2026-08-11T13:48:59.135Z] WARN [chat-panel] Panel created/revived — setting webview HTML (4066 chars, sessionId=(new))
+[2026-08-11T13:48:59.150Z] WARN [idle-diag] visibility → HIDDEN generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:48:59.151Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:48:59.201Z] WARN [idle-diag] handleMessage IN type=ready disposed=false generating=false turnStreamActive=false aborted=no-ctrl hasSession=false pausedForQuestion=none hostHidden=false readySignalled=false
+[2026-08-11T13:51:57.340Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:52:02.788Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false
+[2026-08-11T13:52:03.883Z] WARN [idle-diag] visibility → VISIBLE generating=false turnStreamActive=false aborted=no-ctrl hasSession=false

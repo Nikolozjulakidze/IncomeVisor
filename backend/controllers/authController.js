@@ -615,35 +615,30 @@ export const updateSettings = async (req, res) => {
 // Export all user data as JSON.
 export const exportData = async (req, res) => {
   try {
-    const [userRes, catRes, cardRes, txnRes, budgetRes, acctRes] =
-      await Promise.all([
-        pool.query(
-          "SELECT id, name, email, currency, language, preferences, provider, created_at FROM users WHERE id = $1",
-          [req.userId],
-        ),
-        pool.query("SELECT * FROM categories WHERE user_id = $1 ORDER BY id", [
-          req.userId,
-        ]),
-        pool.query("SELECT * FROM cards WHERE user_id = $1 ORDER BY id", [
-          req.userId,
-        ]),
-        pool.query(
-          "SELECT * FROM transactions WHERE user_id = $1 ORDER BY transaction_date DESC, id DESC",
-          [req.userId],
-        ),
-        pool.query("SELECT * FROM budgets WHERE user_id = $1 ORDER BY id", [
-          req.userId,
-        ]),
-        pool.query("SELECT * FROM accounts WHERE user_id = $1 ORDER BY id", [
-          req.userId,
-        ]),
-      ]);
+    const [userRes, catRes, txnRes, budgetRes, acctRes] = await Promise.all([
+      pool.query(
+        "SELECT id, name, email, currency, language, preferences, provider, created_at FROM users WHERE id = $1",
+        [req.userId],
+      ),
+      pool.query("SELECT * FROM categories WHERE user_id = $1 ORDER BY id", [
+        req.userId,
+      ]),
+      pool.query(
+        "SELECT * FROM transactions WHERE user_id = $1 ORDER BY transaction_date DESC, id DESC",
+        [req.userId],
+      ),
+      pool.query("SELECT * FROM budgets WHERE user_id = $1 ORDER BY id", [
+        req.userId,
+      ]),
+      pool.query("SELECT * FROM accounts WHERE user_id = $1 ORDER BY id", [
+        req.userId,
+      ]),
+    ]);
 
     const data = {
       exportedAt: new Date().toISOString(),
       user: userRes.rows[0] || null,
       categories: catRes.rows,
-      cards: cardRes.rows,
       transactions: txnRes.rows,
       budgets: budgetRes.rows,
       accounts: acctRes.rows,

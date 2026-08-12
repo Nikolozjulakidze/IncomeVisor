@@ -22,13 +22,6 @@ export const API_PATHS = {
     UPDATE: (id) => `/categories/${id}`,
     DELETE: (id) => `/categories/${id}`,
   },
-  CARDS: {
-    LIST: "/cards",
-    CREATE: "/cards",
-    GET_BY_ID: (id) => `/cards/${id}`,
-    UPDATE: (id) => `/cards/${id}`,
-    DELETE: (id) => `/cards/${id}`,
-  },
   TRANSACTIONS: {
     LIST: "/transactions",
     CREATE: "/transactions",

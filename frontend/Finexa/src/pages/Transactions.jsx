@@ -10,7 +10,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  CreditCard,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../lib/axios.js";
@@ -36,13 +35,11 @@ const Transactions = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [allTransactions, setAllTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
     type: "",
     categoryId: "",
-    cardId: "",
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -56,17 +53,14 @@ const Transactions = () => {
     const params = { limit: 2000 };
     if (filters.search) params.search = filters.search;
     if (filters.categoryId) params.categoryId = filters.categoryId;
-    if (filters.cardId) params.cardId = filters.cardId;
     try {
       setLoading(true);
-      const [tRes, cRes, cardRes] = await Promise.all([
+      const [tRes, cRes] = await Promise.all([
         api.get(API_PATHS.TRANSACTIONS.LIST, { params }),
         api.get(API_PATHS.CATEGORIES.LIST),
-        api.get(API_PATHS.CARDS.LIST),
       ]);
       setAllTransactions(tRes.data);
       setCategories(cRes.data);
-      setCards(cardRes.data);
     } catch {
       toast.error("Failed to load transactions");
     } finally {
@@ -76,11 +70,11 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters.search, filters.categoryId, filters.cardId]);
+  }, [filters.search, filters.categoryId]);
 
   useEffect(() => {
     setPage(1);
-  }, [filters.search, filters.type, filters.categoryId, filters.cardId]);
+  }, [filters.search, filters.type, filters.categoryId]);
 
   const transactions = useMemo(
     () =>
@@ -459,20 +453,6 @@ const Transactions = () => {
               </option>
             ))}
           </select>
-
-          <select
-            value={filters.cardId}
-            onChange={(e) => setFilters({ ...filters, cardId: e.target.value })}
-            className="px-4 py-2 rounded-full input-field text-sm focus-ring-accent"
-          >
-            <option value="">{t("txn.allCards")}</option>
-            {cards.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-                {c.last_four ? ` •${c.last_four}` : ""}
-              </option>
-            ))}
-          </select>
         </div>
 
         {loading ? (
@@ -497,7 +477,6 @@ const Transactions = () => {
                 <tr className="text-left text-xs font-semibold text-text-secondary uppercase tracking-wider border-b border-border-color">
                   <th className="pb-4 pr-4">{t("txn.category")}</th>
                   <th className="pb-4 pr-4">{t("txn.description")}</th>
-                  <th className="pb-4 pr-4">{t("txn.card")}</th>
                   <th className="pb-4 pr-4">{t("txn.date")}</th>
                   <th className="pb-4 pr-4">{t("txn.type")}</th>
                   <th className="pb-4 pr-4 text-right">{t("txn.amount")}</th>
@@ -520,30 +499,6 @@ const Transactions = () => {
                     </td>
                     <td className="py-4 pr-4 text-sm text-text-secondary">
                       {t.description || "—"}
-                    </td>
-                    <td className="py-4 pr-4">
-                      {t.card_name ? (
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-6 w-6 rounded flex items-center justify-center shrink-0"
-                            style={{
-                              backgroundColor:
-                                (t.card_color || "#6366F1") + "33",
-                            }}
-                          >
-                            <CreditCard
-                              size={12}
-                              style={{ color: t.card_color || "#6366F1" }}
-                            />
-                          </div>
-                          <span className="text-sm text-text-secondary truncate">
-                            {t.card_name}
-                            {t.card_last_four && ` •${t.card_last_four}`}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-text-secondary">—</span>
-                      )}
                     </td>
                     <td className="py-4 pr-4 text-sm text-text-secondary whitespace-nowrap">
                       {formatDate(t.transaction_date)}
@@ -651,7 +606,6 @@ const Transactions = () => {
         <TransactionForm
           initial={editing}
           categories={categories}
-          cards={cards}
           onSaved={onSaved}
           onCancel={() => setModalOpen(false)}
         />

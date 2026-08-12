@@ -112,7 +112,19 @@ const Navbar = () => {
       }`}
     >
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <FinexaLogo variant="horizontal" size={72} />
+        {/* Logo: horizontal on larger screens, icon-only on ≤511px */}
+        <div className="flex items-center">
+          <FinexaLogo
+            variant="horizontal"
+            size={72}
+            className="max-[511px]:hidden"
+          />
+          <FinexaLogo
+            variant="icon"
+            size={40}
+            className="hidden max-[511px]:inline-flex"
+          />
+        </div>
         <div className="hidden lg:flex items-center gap-8">
           {links.map((l) => (
             <a
@@ -134,7 +146,7 @@ const Navbar = () => {
           </Link>
           <Link
             to="/register"
-            className="inline-flex items-center gap-2 bg-accent text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-accent-hover transition-all duration-300 shadow-lg shadow-accent/20"
+            className="inline-flex items-center gap-2 bg-accent text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-accent-hover transition-all duration-300 shadow-lg shadow-accent/20 max-[511px]:px-4 max-[511px]:py-2 max-[511px]:text-xs"
           >
             Sign Up
             <ArrowRight size={16} />
@@ -169,6 +181,12 @@ const Navbar = () => {
             className="block text-text-secondary hover:text-text-primary transition py-1"
           >
             Log In
+          </Link>
+          <Link
+            to="/register"
+            className="block text-text-secondary hover:text-text-primary transition py-1"
+          >
+            Sign Up
           </Link>
         </div>
       )}

@@ -7,15 +7,15 @@ import {
   Sparkles,
   MessageSquare,
   Wallet,
-  CreditCard,
   Settings as SettingsIcon,
   LogOut,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 import FinexaLogo from "./FinexaLogo.jsx";
 
-const Sidebar = () => {
+const Sidebar = ({ open, closeSidebar }) => {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const initial = user?.name?.[0]?.toUpperCase() || "U";
@@ -25,7 +25,6 @@ const Sidebar = () => {
     { to: "/transactions", label: t("nav.transactions"), icon: ArrowLeftRight },
     { to: "/categories", label: t("nav.categories"), icon: Folder },
     { to: "/budgets", label: t("nav.budgets"), icon: Target },
-    { to: "/cards", label: t("nav.cards"), icon: CreditCard },
     { to: "/bank-connections", label: t("nav.accounts"), icon: Wallet },
     { to: "/insights", label: t("nav.insights"), icon: Sparkles },
     { to: "/ai-chat", label: t("nav.chat"), icon: MessageSquare },
@@ -33,8 +32,26 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-sidebar-background hidden lg:flex flex-col shrink-0 p-4 card-style">
-      <div className="h-16 flex items-center px-2">
+    <aside
+      className={`w-64 bg-sidebar-background flex flex-col shrink-0 p-4 card-style
+        fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0
+        transition-transform duration-300 ease-in-out
+        ${open ? "translate-x-0" : "-translate-x-full"}`}
+    >
+      {/* Mobile close button */}
+      <div className="flex items-center justify-between h-16 px-2 lg:hidden">
+        <FinexaLogo variant="icon" size={40} />
+        <button
+          onClick={closeSidebar}
+          className="p-2 rounded-lg text-text-secondary hover:bg-surface-alt hover:text-text-primary transition"
+          aria-label="Close sidebar"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Desktop logo (hidden on mobile) */}
+      <div className="hidden lg:block h-16 flex items-center px-2">
         <FinexaLogo variant="horizontal" size={56} titleSize={22} />
       </div>
 
@@ -44,6 +61,7 @@ const Sidebar = () => {
             key={to}
             to={to}
             end={to === "/dashboard"}
+            onClick={closeSidebar}
             className={({ isActive }) =>
               `relative flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition ${
                 isActive
