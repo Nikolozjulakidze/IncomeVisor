@@ -12,6 +12,10 @@ import BankConnections from "./pages/BankConnections.jsx";
 import Settings from "./pages/Settings.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Layout from "./components/Layout.jsx";
+import Company from "./pages/Company.jsx";
+import About from "./pages/About.jsx";
+import Blog from "./pages/Blog.jsx";
+import Contact from "./pages/Contact.jsx";
 
 const App = () => {
   return (
@@ -19,6 +23,10 @@ const App = () => {
       <Route path="/" element={<Starter />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/company" element={<Company />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/contact" element={<Contact />} />
       <Route
         element={
           <ProtectedRoute>

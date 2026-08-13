@@ -40,9 +40,8 @@ const SocialAuthButtons = () => {
   const [verifying, setVerifying] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState(null);
 
-  const googleButtonRef = useRef(null);
-  const googleRenderedRef = useRef(false);
   const recaptchaRef = useRef(null);
+  const tokenClientRef = useRef(null);
 
   const finishAuth = useCallback(async () => {
     toast.success("Signed in with Google!");
@@ -50,11 +49,11 @@ const SocialAuthButtons = () => {
   }, [navigate]);
 
   const handleCredential = useCallback(
-    async (credential) => {
+    async (token) => {
       setSending(true);
       try {
-        const data = await sendGoogleOtp(credential);
-        setIdToken(credential);
+        const data = await sendGoogleOtp(token);
+        setIdToken(token);
         setMaskedEmail(data.email);
         setOtp("");
         setRecaptchaToken(null);
@@ -69,30 +68,46 @@ const SocialAuthButtons = () => {
     [sendGoogleOtp],
   );
 
-  // Initialize Google Identity Services once.
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return;
-    if (!window.google?.accounts) {
-      toast.error("Google sign-in is not available");
-      return;
-    }
-    if (googleRenderedRef.current) return;
-    googleRenderedRef.current = true;
+    if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.oauth2) return;
 
-    window.google.accounts.id.initialize({
+    // Initialize OAuth2 client for popup on button click
+    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
-      callback: (response) => handleCredential(response.credential),
-    });
-
-    window.google.accounts.id.renderButton(googleButtonRef.current, {
-      theme: "outline",
-      size: "large",
-      width: googleButtonRef.current.offsetWidth || 280,
-      shape: "pill",
-      text: "signin_with",
-      logo_alignment: "left",
+      scope: "email profile",
+      callback: (response) => {
+        if (response.access_token) {
+          handleCredential(response.access_token);
+        }
+      },
     });
   }, [handleCredential]);
+
+  const handleGoogleSignIn = () => {
+    if (!GOOGLE_CLIENT_ID) {
+      toast.error("Google sign-in is not configured yet");
+      return;
+    }
+    if (!tokenClientRef.current) {
+      // Fallback in case script loads slowly
+      if (window.google?.accounts?.oauth2) {
+        tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: "email profile",
+          callback: (response) => {
+            if (response.access_token) handleCredential(response.access_token);
+          },
+        });
+        tokenClientRef.current.requestAccessToken();
+      } else {
+        toast.error("Google sign-in service is unavailable");
+      }
+      return;
+    }
+
+    // Opens the Google sign-in popup directly on click
+    tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+  };
 
   // Render the reCAPTCHA widget once the OTP step is shown.
   useEffect(() => {
@@ -149,26 +164,14 @@ const SocialAuthButtons = () => {
       </div>
 
       {step === "idle" && (
-        <>
-          {/* Google button — rendered by the SDK into this container */}
-          <div
-            ref={googleButtonRef}
-            className="w-full h-[50px] flex items-center justify-center overflow-hidden [&_iframe]:!w-full"
-          >
-            {!GOOGLE_CLIENT_ID && (
-              <button
-                type="button"
-                onClick={() =>
-                  toast.error("Google sign-in is not configured yet")
-                }
-                className="inline-flex items-center justify-center gap-2.5 border border-border-color bg-surface hover:bg-surface-alt text-text-primary font-semibold py-3.5 rounded-2xl transition w-full h-full"
-              >
-                <GoogleIcon />
-                <span>Sign in with Google</span>
-              </button>
-            )}
-          </div>
-        </>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="w-full h-[50px] inline-flex items-center justify-center gap-3 bg-surface hover:bg-surface-alt text-text-primary font-medium rounded-full border border-border-color transition-colors shadow-sm text-sm"
+        >
+          <GoogleIcon />
+          <span>Google</span>
+        </button>
       )}
 
       {step === "otp" && (
