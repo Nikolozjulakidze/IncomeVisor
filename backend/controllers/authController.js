@@ -59,9 +59,14 @@ const getTransporter = () => {
     auth: process.env.SMTP_USER
       ? {
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          pass: process.env.SMTP_PASS
+            ? process.env.SMTP_PASS.replace(/\s+/g, "")
+            : "",
         }
       : undefined,
+    tls: {
+      rejectUnauthorized: false, // Prevents local dev SSL connection drops
+    },
   });
   return transporterCache;
 };
@@ -109,10 +114,19 @@ const createOtp = async (email) => {
 
 // Verify a Google ID token and return its payload.
 const verifyGoogleIdToken = async (idToken) => {
-  const ticket = await googleClient.verifyIdToken({
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+
+  if (!clientId) {
+    throw new Error("GOOGLE_CLIENT_ID is missing from backend .env");
+  }
+
+  const client = new OAuth2Client(clientId);
+
+  const ticket = await client.verifyIdToken({
     idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
+    audience: clientId,
   });
+
   return ticket.getPayload();
 };
 
@@ -727,7 +741,7 @@ const handleOAuthUser = async ({ provider, providerId, email, name }) => {
 
 // Step 1: Verify the Google ID token, send an OTP to the user's email.
 export const sendGoogleOtp = async (req, res) => {
-  const { idToken } = req.body;
+  const idToken = req.body.idToken || req.body.token;
 
   if (!idToken) {
     return res.status(400).json({ message: "ID token is required" });
@@ -756,7 +770,8 @@ export const sendGoogleOtp = async (req, res) => {
 
 // Step 2: Verify the reCAPTCHA + OTP, then create/login the user.
 export const verifyGoogleOtp = async (req, res) => {
-  const { idToken, otp, recaptchaToken } = req.body;
+  const { otp, recaptchaToken } = req.body;
+  const idToken = req.body.idToken || req.body.token;
 
   if (!idToken || !otp) {
     return res
@@ -787,9 +802,7 @@ export const verifyGoogleOtp = async (req, res) => {
     }
 
     const otpId = result.rows[0].id;
-    await pool.query("UPDATE email_otps SET used = TRUE WHERE id = $1", [
-      otpId,
-    ]);
+    await pool.query("UPDATE email_otps SET used = TRUE WHERE id = $1", [otpId]);
 
     // 4. Find or create the user
     const user = await handleOAuthUser({
@@ -809,7 +822,7 @@ export const verifyGoogleOtp = async (req, res) => {
 };
 
 export const googleAuth = async (req, res) => {
-  const { idToken } = req.body;
+  const idToken = req.body.idToken || req.body.token;
 
   if (!idToken) {
     return res.status(400).json({ message: "ID token is required" });

@@ -7,6 +7,11 @@ import Spinner from "./Spinner.jsx";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
+// 🔍 DEBUG
+console.log("🔥 NEW SOCIAL AUTH COMPONENT LOADED");
+console.log("Google Client ID:", GOOGLE_CLIENT_ID);
+console.log("Google API:", window.google?.accounts?.id);
+
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48">
     <path
@@ -15,7 +20,7 @@ const GoogleIcon = () => (
     />
     <path
       fill="#FF3D00"
-      d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+      d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 10.337 6.306 14.691z"
     />
     <path
       fill="#4CAF50"
@@ -23,7 +28,7 @@ const GoogleIcon = () => (
     />
     <path
       fill="#1976D2"
-      d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+      d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-6.08 4.166-11.303 5.571.001-.001.002-.002.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
     />
   </svg>
 );
@@ -40,8 +45,8 @@ const SocialAuthButtons = () => {
   const [verifying, setVerifying] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState(null);
 
-  const recaptchaRef = useRef(null);
   const googleButtonRef = useRef(null);
+  const recaptchaRef = useRef(null);
   const googleInitializedRef = useRef(false);
 
   const finishAuth = useCallback(() => {
@@ -49,21 +54,29 @@ const SocialAuthButtons = () => {
     navigate("/dashboard");
   }, [navigate]);
 
+  // Handle Google's ID token
   const handleCredential = useCallback(
-    async (credential) => {
-      if (!credential) {
+    async (response) => {
+      console.log("🔥 Google credential response:", response);
+
+      if (!response?.credential) {
         toast.error("Google did not return an ID token");
         return;
       }
 
-      console.log("Google ID token received");
+      const token = response.credential;
+
+      console.log("🔥 Google ID token received");
+      console.log("Token starts with:", token.substring(0, 20));
 
       setSending(true);
 
       try {
-        const data = await sendGoogleOtp(credential);
+        const data = await sendGoogleOtp(token);
 
-        setIdToken(credential);
+        console.log("🔥 Google OTP response:", data);
+
+        setIdToken(token);
         setMaskedEmail(data.email);
         setOtp("");
         setRecaptchaToken(null);
@@ -71,7 +84,7 @@ const SocialAuthButtons = () => {
 
         toast.success("Verification code sent to your email");
       } catch (err) {
-        console.error("Google OTP error:", err);
+        console.error("❌ Send Google OTP error:", err);
 
         toast.error(
           err.response?.data?.message || "Failed to send verification code",
@@ -83,145 +96,104 @@ const SocialAuthButtons = () => {
     [sendGoogleOtp],
   );
 
-  /*
-   * Initialize Google Identity Services.
-   *
-   * This returns response.credential, which is the ID token.
-   */
+  // Initialize Google Identity Services
   useEffect(() => {
+    console.log("🔵 Google initialization effect running");
+
     if (!GOOGLE_CLIENT_ID) {
-      console.error("VITE_GOOGLE_CLIENT_ID is missing");
-      return;
-    }
-
-    const initializeGoogle = () => {
-      if (!window.google?.accounts?.id) {
-        return false;
-      }
-
-      if (!googleButtonRef.current) {
-        return false;
-      }
-
-      if (googleInitializedRef.current) {
-        return true;
-      }
-
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-
-        callback: (response) => {
-          if (!response?.credential) {
-            toast.error("Google sign-in failed");
-            return;
-          }
-
-          handleCredential(response.credential);
-        },
-
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: "outline",
-        size: "large",
-        width: 400,
-        text: "signin_with",
-        shape: "pill",
-      });
-
-      googleInitializedRef.current = true;
-
-      return true;
-    };
-
-    if (initializeGoogle()) {
-      return;
-    }
-
-    /*
-     * Google script is loaded asynchronously, so wait for it.
-     */
-    const interval = setInterval(() => {
-      if (initializeGoogle()) {
-        clearInterval(interval);
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [handleCredential]);
-
-  const handleGoogleSignIn = () => {
-    if (!GOOGLE_CLIENT_ID) {
-      toast.error("Google sign-in is not configured");
+      console.error("❌ VITE_GOOGLE_CLIENT_ID is missing");
       return;
     }
 
     if (!window.google?.accounts?.id) {
-      toast.error("Google sign-in is still loading. Please try again.");
+      console.error("❌ Google Identity Services script is not loaded");
+      console.log("window.google:", window.google);
       return;
     }
 
     if (!googleButtonRef.current) {
-      toast.error("Google sign-in is unavailable");
+      console.error("❌ Google button container not found");
       return;
     }
 
-    /*
-     * The actual Google button is rendered inside googleButtonRef.
-     *
-     * Clicking our custom button triggers the first Google button
-     * inside that container.
-     */
-    const googleButton =
-      googleButtonRef.current.querySelector('[role="button"]');
-
-    if (googleButton) {
-      googleButton.click();
-    } else {
-      toast.error("Google sign-in is unavailable");
+    if (googleInitializedRef.current) {
+      return;
     }
-  };
 
-  /*
-   * Render reCAPTCHA after OTP step appears.
-   */
+    console.log("✅ Google Identity Services is available");
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+
+        callback: handleCredential,
+
+        auto_select: false,
+
+        cancel_on_tap_outside: true,
+      });
+
+      googleInitializedRef.current = true;
+
+      console.log("✅ Google Identity Services initialized");
+
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "pill",
+        width: 400,
+      });
+
+      console.log("✅ Google button rendered");
+    } catch (error) {
+      console.error("❌ Google initialization failed:", error);
+    }
+  }, [handleCredential]);
+
+  // Render reCAPTCHA when OTP screen appears
   useEffect(() => {
     if (step !== "otp") return;
-    if (!recaptchaRef.current) return;
-    if (!window.grecaptcha) return;
-    if (!RECAPTCHA_SITE_KEY) return;
 
-    if (recaptchaRef.current.hasChildNodes()) return;
+    if (!RECAPTCHA_SITE_KEY) {
+      console.warn("⚠️ VITE_RECAPTCHA_SITE_KEY is missing");
+      return;
+    }
 
-    window.grecaptcha.render(recaptchaRef.current, {
-      sitekey: RECAPTCHA_SITE_KEY,
-      theme: "light",
+    if (!recaptchaRef.current) {
+      console.warn("⚠️ reCAPTCHA container not found");
+      return;
+    }
 
-      callback: (token) => {
-        setRecaptchaToken(token);
-      },
+    if (!window.grecaptcha) {
+      console.warn("⚠️ reCAPTCHA script is not loaded");
+      return;
+    }
 
-      "expired-callback": () => {
-        setRecaptchaToken(null);
-      },
+    try {
+      recaptchaRef.current.innerHTML = "";
 
-      "error-callback": () => {
-        setRecaptchaToken(null);
-        toast.error("reCAPTCHA failed");
-      },
-    });
+      window.grecaptcha.render(recaptchaRef.current, {
+        sitekey: RECAPTCHA_SITE_KEY,
+        theme: "light",
+        callback: (token) => {
+          console.log("✅ reCAPTCHA token received");
+          setRecaptchaToken(token);
+        },
+        "expired-callback": () => {
+          console.log("⚠️ reCAPTCHA token expired");
+          setRecaptchaToken(null);
+        },
+      });
+
+      console.log("✅ reCAPTCHA rendered");
+    } catch (error) {
+      console.error("❌ reCAPTCHA render error:", error);
+    }
   }, [step]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
-
-    if (!idToken) {
-      toast.error("Google authentication expired. Please try again.");
-      handleReset();
-      return;
-    }
 
     if (!otp.trim()) {
       toast.error("Please enter the verification code");
@@ -235,18 +207,27 @@ const SocialAuthButtons = () => {
       return;
     }
 
+    if (!idToken) {
+      toast.error("Google authentication token is missing");
+      return;
+    }
+
     setVerifying(true);
 
     try {
+      console.log("🔵 Verifying Google OTP...");
+
       await verifyGoogleOtp({
         idToken,
         otp: otp.trim(),
         recaptchaToken,
       });
 
+      console.log("✅ Google OTP verification successful");
+
       finishAuth();
     } catch (err) {
-      console.error("Google OTP verification error:", err);
+      console.error("❌ Google OTP verification error:", err);
 
       toast.error(err.response?.data?.message || "Verification failed");
     } finally {
@@ -261,9 +242,12 @@ const SocialAuthButtons = () => {
     setOtp("");
     setRecaptchaToken(null);
 
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.cancel();
+    // Reset Google button container
+    if (googleButtonRef.current) {
+      googleButtonRef.current.innerHTML = "";
     }
+
+    googleInitializedRef.current = false;
   };
 
   return (
@@ -279,25 +263,9 @@ const SocialAuthButtons = () => {
       </div>
 
       {step === "idle" && (
-        <>
-          {/* Hidden Google Identity Services button */}
-          <div
-            ref={googleButtonRef}
-            className="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden"
-          />
-
-          {/* Your custom button */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={sending}
-            className="w-full h-[50px] inline-flex items-center justify-center gap-3 bg-surface hover:bg-surface-alt text-text-primary font-medium rounded-full border border-border-color transition-colors shadow-sm text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <GoogleIcon />
-
-            <span>{sending ? "Signing in..." : "Google"}</span>
-          </button>
-        </>
+        <div className="w-full flex justify-center">
+          <div ref={googleButtonRef} />
+        </div>
       )}
 
       {step === "otp" && (
