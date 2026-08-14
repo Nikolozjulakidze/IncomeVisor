@@ -23,7 +23,7 @@ const GoogleIcon = () => (
     />
     <path
       fill="#1976D2"
-      d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.002.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+      d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
     />
   </svg>
 );
@@ -32,7 +32,7 @@ const SocialAuthButtons = () => {
   const { sendGoogleOtp, verifyGoogleOtp } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState("idle"); // idle | otp
+  const [step, setStep] = useState("idle");
   const [idToken, setIdToken] = useState(null);
   const [maskedEmail, setMaskedEmail] = useState(null);
   const [otp, setOtp] = useState("");
@@ -41,26 +41,41 @@ const SocialAuthButtons = () => {
   const [recaptchaToken, setRecaptchaToken] = useState(null);
 
   const recaptchaRef = useRef(null);
-  const tokenClientRef = useRef(null);
+  const googleButtonRef = useRef(null);
+  const googleInitializedRef = useRef(false);
 
-  const finishAuth = useCallback(async () => {
+  const finishAuth = useCallback(() => {
     toast.success("Signed in with Google!");
     navigate("/dashboard");
   }, [navigate]);
 
   const handleCredential = useCallback(
-    async (token) => {
+    async (credential) => {
+      if (!credential) {
+        toast.error("Google did not return an ID token");
+        return;
+      }
+
+      console.log("Google ID token received");
+
       setSending(true);
+
       try {
-        const data = await sendGoogleOtp(token);
-        setIdToken(token);
+        const data = await sendGoogleOtp(credential);
+
+        setIdToken(credential);
         setMaskedEmail(data.email);
         setOtp("");
         setRecaptchaToken(null);
         setStep("otp");
+
         toast.success("Verification code sent to your email");
       } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to send code");
+        console.error("Google OTP error:", err);
+
+        toast.error(
+          err.response?.data?.message || "Failed to send verification code",
+        );
       } finally {
         setSending(false);
       }
@@ -68,65 +83,151 @@ const SocialAuthButtons = () => {
     [sendGoogleOtp],
   );
 
+  /*
+   * Initialize Google Identity Services.
+   *
+   * This returns response.credential, which is the ID token.
+   */
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.oauth2) return;
+    if (!GOOGLE_CLIENT_ID) {
+      console.error("VITE_GOOGLE_CLIENT_ID is missing");
+      return;
+    }
 
-    // Initialize OAuth2 client for popup on button click
-    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: "email profile",
-      callback: (response) => {
-        if (response.access_token) {
-          handleCredential(response.access_token);
-        }
-      },
-    });
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) {
+        return false;
+      }
+
+      if (!googleButtonRef.current) {
+        return false;
+      }
+
+      if (googleInitializedRef.current) {
+        return true;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+
+        callback: (response) => {
+          if (!response?.credential) {
+            toast.error("Google sign-in failed");
+            return;
+          }
+
+          handleCredential(response.credential);
+        },
+
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: "outline",
+        size: "large",
+        width: 400,
+        text: "signin_with",
+        shape: "pill",
+      });
+
+      googleInitializedRef.current = true;
+
+      return true;
+    };
+
+    if (initializeGoogle()) {
+      return;
+    }
+
+    /*
+     * Google script is loaded asynchronously, so wait for it.
+     */
+    const interval = setInterval(() => {
+      if (initializeGoogle()) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
   }, [handleCredential]);
 
   const handleGoogleSignIn = () => {
     if (!GOOGLE_CLIENT_ID) {
-      toast.error("Google sign-in is not configured yet");
-      return;
-    }
-    if (!tokenClientRef.current) {
-      // Fallback in case script loads slowly
-      if (window.google?.accounts?.oauth2) {
-        tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
-          client_id: GOOGLE_CLIENT_ID,
-          scope: "email profile",
-          callback: (response) => {
-            if (response.access_token) handleCredential(response.access_token);
-          },
-        });
-        tokenClientRef.current.requestAccessToken();
-      } else {
-        toast.error("Google sign-in service is unavailable");
-      }
+      toast.error("Google sign-in is not configured");
       return;
     }
 
-    // Opens the Google sign-in popup directly on click
-    tokenClientRef.current.requestAccessToken({ prompt: "consent" });
+    if (!window.google?.accounts?.id) {
+      toast.error("Google sign-in is still loading. Please try again.");
+      return;
+    }
+
+    if (!googleButtonRef.current) {
+      toast.error("Google sign-in is unavailable");
+      return;
+    }
+
+    /*
+     * The actual Google button is rendered inside googleButtonRef.
+     *
+     * Clicking our custom button triggers the first Google button
+     * inside that container.
+     */
+    const googleButton =
+      googleButtonRef.current.querySelector('[role="button"]');
+
+    if (googleButton) {
+      googleButton.click();
+    } else {
+      toast.error("Google sign-in is unavailable");
+    }
   };
 
-  // Render the reCAPTCHA widget once the OTP step is shown.
+  /*
+   * Render reCAPTCHA after OTP step appears.
+   */
   useEffect(() => {
-    if (step !== "otp" || !recaptchaRef.current) return;
-    if (!window.grecaptcha || !RECAPTCHA_SITE_KEY) return;
+    if (step !== "otp") return;
+    if (!recaptchaRef.current) return;
+    if (!window.grecaptcha) return;
+    if (!RECAPTCHA_SITE_KEY) return;
+
+    if (recaptchaRef.current.hasChildNodes()) return;
 
     window.grecaptcha.render(recaptchaRef.current, {
       sitekey: RECAPTCHA_SITE_KEY,
       theme: "light",
-      callback: (token) => setRecaptchaToken(token),
+
+      callback: (token) => {
+        setRecaptchaToken(token);
+      },
+
+      "expired-callback": () => {
+        setRecaptchaToken(null);
+      },
+
+      "error-callback": () => {
+        setRecaptchaToken(null);
+        toast.error("reCAPTCHA failed");
+      },
     });
   }, [step]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
+
+    if (!idToken) {
+      toast.error("Google authentication expired. Please try again.");
+      handleReset();
+      return;
+    }
+
     if (!otp.trim()) {
       toast.error("Please enter the verification code");
       return;
     }
+
     if (!recaptchaToken) {
       toast.error(
         "Please complete the reCAPTCHA to confirm you are not a robot",
@@ -135,10 +236,18 @@ const SocialAuthButtons = () => {
     }
 
     setVerifying(true);
+
     try {
-      await verifyGoogleOtp({ idToken, otp: otp.trim(), recaptchaToken });
-      await finishAuth();
+      await verifyGoogleOtp({
+        idToken,
+        otp: otp.trim(),
+        recaptchaToken,
+      });
+
+      finishAuth();
     } catch (err) {
+      console.error("Google OTP verification error:", err);
+
       toast.error(err.response?.data?.message || "Verification failed");
     } finally {
       setVerifying(false);
@@ -151,27 +260,44 @@ const SocialAuthButtons = () => {
     setMaskedEmail(null);
     setOtp("");
     setRecaptchaToken(null);
+
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.cancel();
+    }
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4 my-6">
         <div className="flex-1 h-px bg-border-color" />
+
         <span className="text-xs uppercase tracking-wider text-text-tertiary font-medium">
           or continue with
         </span>
+
         <div className="flex-1 h-px bg-border-color" />
       </div>
 
       {step === "idle" && (
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          className="w-full h-[50px] inline-flex items-center justify-center gap-3 bg-surface hover:bg-surface-alt text-text-primary font-medium rounded-full border border-border-color transition-colors shadow-sm text-sm"
-        >
-          <GoogleIcon />
-          <span>Google</span>
-        </button>
+        <>
+          {/* Hidden Google Identity Services button */}
+          <div
+            ref={googleButtonRef}
+            className="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden"
+          />
+
+          {/* Your custom button */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={sending}
+            className="w-full h-[50px] inline-flex items-center justify-center gap-3 bg-surface hover:bg-surface-alt text-text-primary font-medium rounded-full border border-border-color transition-colors shadow-sm text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <GoogleIcon />
+
+            <span>{sending ? "Signing in..." : "Google"}</span>
+          </button>
+        </>
       )}
 
       {step === "otp" && (
@@ -180,10 +306,12 @@ const SocialAuthButtons = () => {
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <GoogleIcon />
+
                 <div>
                   <p className="text-sm font-semibold text-text-primary">
                     Verify your email
                   </p>
+
                   <p className="text-xs text-text-secondary">
                     We sent a code to {maskedEmail}
                     {!RECAPTCHA_SITE_KEY && (
@@ -194,6 +322,7 @@ const SocialAuthButtons = () => {
                   </p>
                 </div>
               </div>
+
               <button
                 type="button"
                 onClick={handleReset}
@@ -207,6 +336,7 @@ const SocialAuthButtons = () => {
               <label className="text-xs font-semibold text-text-primary">
                 Verification code
               </label>
+
               <input
                 inputMode="numeric"
                 maxLength={6}
@@ -219,7 +349,6 @@ const SocialAuthButtons = () => {
               />
             </div>
 
-            {/* reCAPTCHA widget */}
             <div className="flex justify-center">
               {RECAPTCHA_SITE_KEY ? (
                 <div ref={recaptchaRef} />
