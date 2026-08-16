@@ -53,12 +53,13 @@ const getTransporter = () => {
   if (!process.env.SMTP_HOST) return null;
   if (transporterCache) return transporterCache;
 
-  const port = Number(process.env.SMTP_PORT) || 587;
+  // Force port 465 and direct TLS/SSL
+  const port = Number(process.env.SMTP_PORT) || 465;
 
   transporterCache = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: port,
-    secure: port === 465, // Must be false for port 587
+    secure: true, // MUST be true for port 465
     auth: process.env.SMTP_USER
       ? {
           user: process.env.SMTP_USER,
@@ -67,10 +68,9 @@ const getTransporter = () => {
             : "",
         }
       : undefined,
-    // Strict timeouts prevent Render sockets from pending indefinitely
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 8000,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     tls: {
       rejectUnauthorized: false,
     },
