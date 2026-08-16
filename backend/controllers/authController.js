@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
 import pool from "../db.js";
 import { defaultCategories } from "../utils/defaultCategories.js";
@@ -47,33 +47,55 @@ const verifyRecaptcha = async (token) => {
   }
 };
 
-// Initialize Resend HTTP Client
-const getResend = () => {
-  if (!process.env.RESEND_API_KEY) return null;
-  return new Resend(process.env.RESEND_API_KEY);
+let transporterCache = null;
+
+// Configure Nodemailer on Port 465 (Implicit SSL - Bypasses Render Firewall)
+const getTransporter = () => {
+  if (!process.env.SMTP_HOST) return null;
+  if (transporterCache) return transporterCache;
+
+  transporterCache = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: true, // MUST be true for port 465
+    auth: process.env.SMTP_USER
+      ? {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+            ? process.env.SMTP_PASS.replace(/\s+/g, "")
+            : "",
+        }
+      : undefined,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  });
+
+  return transporterCache;
 };
 
-// Send OTP via Resend HTTP API (bypasses Render SMTP port blocking)
+// Send real OTP email to any inbox via Gmail SMTP
 const sendOtpEmail = async (email, otp) => {
-  const resend = getResend();
-  if (!resend) {
-    console.warn(
-      "[OTP] RESEND_API_KEY not configured. Returning code without email:",
-      email,
-    );
+  // Always log to Render console for debugging visibility
+  console.log(`🔥 [OTP GENERATED FOR ${email}]: ${otp}`);
+
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn("[OTP] SMTP_HOST or SMTP_USER not configured in environment.");
     return;
   }
 
-  const sender = process.env.SMTP_FROM || "IncomeVerse <onboarding@resend.dev>";
+  const sender =
+    process.env.SMTP_FROM || `IncomeVisor <${process.env.SMTP_USER}>`;
 
-  await resend.emails.send({
+  await transporter.sendMail({
     from: sender,
     to: email,
-    subject: "Your IncomeVerse verification code",
-    text: `Your IncomeVerse verification code is: ${otp}. It expires in 10 minutes.`,
+    subject: "Your IncomeVisor verification code",
+    text: `Your IncomeVisor verification code is: ${otp}. It expires in 10 minutes.`,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f5; border-radius: 12px;">
-        <h2 style="color: #6366f1; margin: 0 0 12px;">IncomeVerse Verification</h2>
+        <h2 style="color: #6366f1; margin: 0 0 12px;">IncomeVisor Verification</h2>
         <p style="color: #333; font-size: 15px;">Use the following code to complete your sign in:</p>
         <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #312e81; background: #ffffff; display: inline-block; padding: 12px 20px; border-radius: 10px; border: 1px solid #e4e4e7;">${otp}</div>
         <p style="color: #71717a; font-size: 13px; margin-top: 16px;">This code expires in 10 minutes.</p>
