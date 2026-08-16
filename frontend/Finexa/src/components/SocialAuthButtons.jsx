@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Spinner from "./Spinner.jsx";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 // 🔍 DEBUG
 console.log("🔥 NEW SOCIAL AUTH COMPONENT LOADED");
@@ -34,19 +33,11 @@ const GoogleIcon = () => (
 );
 
 const SocialAuthButtons = () => {
-  const { sendGoogleOtp, verifyGoogleOtp } = useAuth();
+  const { googleLogin } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState("idle");
-  const [idToken, setIdToken] = useState(null);
-  const [maskedEmail, setMaskedEmail] = useState(null);
-  const [otp, setOtp] = useState("");
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState(null);
-
+  const [signingIn, setSigningIn] = useState(false);
   const googleButtonRef = useRef(null);
-  const recaptchaRef = useRef(null);
   const googleInitializedRef = useRef(false);
 
   const finishAuth = useCallback(() => {
@@ -69,31 +60,20 @@ const SocialAuthButtons = () => {
       console.log("🔥 Google ID token received");
       console.log("Token starts with:", token.substring(0, 20));
 
-      setSending(true);
+      setSigningIn(true);
 
       try {
-        const data = await sendGoogleOtp(token);
-
-        console.log("🔥 Google OTP response:", data);
-
-        setIdToken(token);
-        setMaskedEmail(data.email);
-        setOtp("");
-        setRecaptchaToken(null);
-        setStep("otp");
-
-        toast.success("Verification code sent to your email");
+        await googleLogin(token);
+        finishAuth();
       } catch (err) {
-        console.error("❌ Send Google OTP error:", err);
+        console.error("❌ Google Sign-In error:", err);
 
-        toast.error(
-          err.response?.data?.message || "Failed to send verification code",
-        );
+        toast.error(err.response?.data?.message || "Failed to sign in with Google");
       } finally {
-        setSending(false);
+        setSigningIn(false);
       }
     },
-    [sendGoogleOtp],
+    [googleLogin, finishAuth],
   );
 
   // Initialize Google Identity Services
@@ -125,11 +105,8 @@ const SocialAuthButtons = () => {
     try {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-
         callback: handleCredential,
-
         auto_select: false,
-
         cancel_on_tap_outside: true,
       });
 
@@ -151,105 +128,6 @@ const SocialAuthButtons = () => {
     }
   }, [handleCredential]);
 
-  // Render reCAPTCHA when OTP screen appears
-  useEffect(() => {
-    if (step !== "otp") return;
-
-    if (!RECAPTCHA_SITE_KEY) {
-      console.warn("⚠️ VITE_RECAPTCHA_SITE_KEY is missing");
-      return;
-    }
-
-    if (!recaptchaRef.current) {
-      console.warn("⚠️ reCAPTCHA container not found");
-      return;
-    }
-
-    if (!window.grecaptcha) {
-      console.warn("⚠️ reCAPTCHA script is not loaded");
-      return;
-    }
-
-    try {
-      recaptchaRef.current.innerHTML = "";
-
-      window.grecaptcha.render(recaptchaRef.current, {
-        sitekey: RECAPTCHA_SITE_KEY,
-        theme: "light",
-        callback: (token) => {
-          console.log("✅ reCAPTCHA token received");
-          setRecaptchaToken(token);
-        },
-        "expired-callback": () => {
-          console.log("⚠️ reCAPTCHA token expired");
-          setRecaptchaToken(null);
-        },
-      });
-
-      console.log("✅ reCAPTCHA rendered");
-    } catch (error) {
-      console.error("❌ reCAPTCHA render error:", error);
-    }
-  }, [step]);
-
-  const handleVerify = async (e) => {
-    e.preventDefault();
-
-    if (!otp.trim()) {
-      toast.error("Please enter the verification code");
-      return;
-    }
-
-    if (!recaptchaToken) {
-      toast.error(
-        "Please complete the reCAPTCHA to confirm you are not a robot",
-      );
-      return;
-    }
-
-    if (!idToken) {
-      toast.error("Google authentication token is missing");
-      return;
-    }
-
-    setVerifying(true);
-
-    try {
-      console.log("🔵 Verifying Google OTP...");
-
-      await verifyGoogleOtp({
-        idToken,
-        otp: otp.trim(),
-        recaptchaToken,
-      });
-
-      console.log("✅ Google OTP verification successful");
-
-      finishAuth();
-    } catch (err) {
-      console.error("❌ Google OTP verification error:", err);
-
-      toast.error(err.response?.data?.message || "Verification failed");
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleReset = () => {
-    setStep("idle");
-    setIdToken(null);
-    setMaskedEmail(null);
-    setOtp("");
-    setRecaptchaToken(null);
-
-    // Reset Google button container
-    if (googleButtonRef.current) {
-      googleButtonRef.current.innerHTML = "";
-    }
-
-    googleInitializedRef.current = false;
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4 my-6">
@@ -262,99 +140,16 @@ const SocialAuthButtons = () => {
         <div className="flex-1 h-px bg-border-color" />
       </div>
 
-      {step === "idle" && (
-        <div className="w-full flex justify-center">
-          <div ref={googleButtonRef} />
-        </div>
-      )}
-
-      {step === "otp" && (
-        <form onSubmit={handleVerify} className="space-y-4">
-          <div className="rounded-2xl border border-border-color bg-surface/60 p-4 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <GoogleIcon />
-
-                <div>
-                  <p className="text-sm font-semibold text-text-primary">
-                    Verify your email
-                  </p>
-
-                  <p className="text-xs text-text-secondary">
-                    We sent a code to {maskedEmail}
-                    {!RECAPTCHA_SITE_KEY && (
-                      <span className="ml-1 text-amber-500">
-                        (reCAPTCHA not configured)
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs text-text-tertiary hover:text-text-primary transition"
-              >
-                Change
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-text-primary">
-                Verification code
-              </label>
-
-              <input
-                inputMode="numeric"
-                maxLength={6}
-                pattern="[0-9]*"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                className="input-field w-full rounded-2xl px-5 py-4 text-center text-lg tracking-[0.5em] placeholder-text-tertiary focus-ring-accent"
-                placeholder="______"
-                autoFocus
-              />
-            </div>
-
-            <div className="flex justify-center">
-              {RECAPTCHA_SITE_KEY ? (
-                <div ref={recaptchaRef} />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => toast.error("reCAPTCHA is not configured yet")}
-                  className="border border-border-color bg-surface rounded-lg px-4 py-2 text-xs text-text-secondary"
-                >
-                  reCAPTCHA unavailable
-                </button>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={verifying}
-              className="w-full inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-violet-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {verifying ? (
-                <>
-                  <Spinner size="sm" />
-                  Verifying...
-                </>
-              ) : (
-                "Verify & Sign In"
-              )}
-            </button>
+      <div className="w-full flex justify-center">
+        {signingIn ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-text-secondary">
+            <Spinner size="sm" />
+            Signing in...
           </div>
-        </form>
-      )}
-
-      {sending && (
-        <div className="flex items-center justify-center gap-2 text-sm text-text-secondary">
-          <Spinner size="sm" />
-          Sending verification code...
-        </div>
-      )}
+        ) : (
+          <div ref={googleButtonRef} />
+        )}
+      </div>
     </div>
   );
 };

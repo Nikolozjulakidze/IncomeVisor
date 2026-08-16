@@ -24,6 +24,11 @@ import {
   BarChart3,
   CreditCard,
   PiggyBank,
+  Twitter,
+  Github,
+  Linkedin,
+  HelpCircle,
+  CheckCircle2,
 } from "lucide-react";
 import FinexaLogo from "../components/FinexaLogo";
 import FeatureCard from "../components/FeatureCard";
@@ -113,7 +118,7 @@ const Navbar = () => {
       }`}
     >
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo: horizontal on larger screens, icon-only on ≤511px */}
+        {/* Logo */}
         <div className="flex items-center">
           <div className="max-[511px]:hidden">
             <FinexaLogo variant="horizontal" size={72} />
@@ -192,7 +197,7 @@ const Navbar = () => {
   );
 };
 
-/* ---------- Professional Dashboard Mockup ---------- */
+/* ---------- Dashboard Mockup ---------- */
 const DashboardMock = () => {
   const areaPath =
     "M0,70 C20,60 40,68 60,50 C80,34 100,52 120,40 C140,30 160,42 180,28 C200,16 220,34 240,20 C260,10 280,22 300,14";
@@ -201,7 +206,6 @@ const DashboardMock = () => {
 
   return (
     <div className="relative text-left">
-      {/* Window chrome */}
       <div className="flex items-center gap-2 px-5 py-3 border-b border-border-color bg-surface-alt/60 rounded-t-2xl">
         <span className="h-3 w-3 rounded-full bg-rose-400/80" />
         <span className="h-3 w-3 rounded-full bg-amber-400/80" />
@@ -211,9 +215,7 @@ const DashboardMock = () => {
         </div>
       </div>
 
-      {/* Body */}
       <div className="grid grid-cols-[64px_1fr] md:grid-cols-[180px_1fr]">
-        {/* Sidebar */}
         <div className="border-r border-border-color bg-surface-alt/40 p-3 md:p-4 space-y-1.5">
           {[
             { label: "Dashboard", active: true, icon: "▦" },
@@ -234,9 +236,7 @@ const DashboardMock = () => {
           ))}
         </div>
 
-        {/* Main content */}
         <div className="p-4 md:p-6 space-y-4">
-          {/* KPI row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="p-3 rounded-xl bg-surface-alt border border-border-color">
               <div className="text-[10px] text-text-secondary mb-1">
@@ -276,7 +276,6 @@ const DashboardMock = () => {
             </div>
           </div>
 
-          {/* Chart + donut */}
           <div className="grid md:grid-cols-3 gap-3">
             <div className="md:col-span-2 p-4 rounded-xl bg-surface-alt border border-border-color">
               <div className="flex items-center justify-between mb-3">
@@ -384,7 +383,6 @@ const DashboardMock = () => {
             </div>
           </div>
 
-          {/* Transactions */}
           <div className="p-4 rounded-xl bg-surface-alt border border-border-color">
             <div className="text-xs font-semibold text-text-primary mb-3">
               Recent Transactions
@@ -486,7 +484,6 @@ const Hero = () => {
           "-=0.3",
         );
 
-      // Reveal floating ornaments as the user scrolls into the mock
       gsap.fromTo(
         ".hero-notif",
         { x: -60, opacity: 0, rotate: -4 },
@@ -535,7 +532,6 @@ const Hero = () => {
           },
         },
       );
-      // Grow the goal progress bar
       gsap.fromTo(
         ".hero-goal-fill",
         { width: "0%" },
@@ -550,7 +546,6 @@ const Hero = () => {
           },
         },
       );
-      // Fade in the glow ring
       gsap.fromTo(
         ".hero-glow-ring",
         { opacity: 0, scale: 0.9 },
@@ -566,7 +561,6 @@ const Hero = () => {
           },
         },
       );
-      // Stagger in the orbiting particles
       gsap.fromTo(
         ".hero-particle",
         { opacity: 0, scale: 0 },
@@ -592,7 +586,6 @@ const Hero = () => {
       ref={heroRef}
       className="relative pt-36 pb-20 overflow-hidden text-center"
     >
-      {/* Background mesh */}
       <div className="absolute inset-0 landing-mesh -z-10" />
       <div className="aurora-blob h-96 w-96 bg-accent/30 top-10 -left-20" />
       <div
@@ -645,7 +638,6 @@ const Hero = () => {
           </a>
         </div>
 
-        {/* Stats — count up on load, visible without scrolling */}
         <div className="hero-stats mt-14 grid grid-cols-2 md:grid-cols-4 gap-8">
           <Stat value={50} suffix="k+" label="Active users" delay={1200} />
           <Stat
@@ -670,9 +662,7 @@ const Hero = () => {
           />
         </div>
 
-        {/* Floating dashboard mockup */}
         <div className="hero-mock relative mt-20 max-w-5xl mx-auto">
-          {/* Animated glow ring behind the mock */}
           <div className="hero-glow-ring absolute inset-0 -m-6 rounded-[2rem] pointer-events-none -z-10" />
 
           <div className="float-y">
@@ -681,7 +671,6 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Floating ornament — live transaction notification */}
           <div className="hero-notif absolute -left-4 md:-left-14 top-12 p-4 rounded-2xl bg-surface border border-border-color shadow-strong">
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -699,7 +688,6 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Floating ornament — smart insight card */}
           <div className="hero-insight absolute -right-4 md:-right-14 bottom-24 p-4 rounded-2xl bg-surface border border-border-color shadow-strong">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-accent-bg flex items-center justify-center">
@@ -716,7 +704,6 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Floating ornament — savings progress */}
           <div className="hero-goal absolute -top-8 left-10 p-4 rounded-2xl bg-surface border border-border-color shadow-strong">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
@@ -738,7 +725,6 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Orbiting particles */}
           <div className="hero-particle hero-p1 absolute top-1/4 left-[8%] h-2 w-2 rounded-full bg-accent" />
           <div className="hero-particle hero-p2 absolute top-1/2 right-[6%] h-1.5 w-1.5 rounded-full bg-cyan-400" />
           <div className="hero-particle hero-p3 absolute bottom-1/4 left-[12%] h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -868,6 +854,395 @@ const HowItWorks = () => (
   </section>
 );
 
+/* ---------- Pricing ---------- */
+const Pricing = () => {
+  const [annual, setAnnual] = useState(true);
+
+  const plans = [
+    {
+      name: "Starter",
+      desc: "Essential tracking for individuals starting their financial journey.",
+      priceMonthly: 0,
+      priceAnnual: 0,
+      badge: null,
+      features: [
+        "Up to 2 connected bank accounts",
+        "Basic budget creation & tracking",
+        "30-day transaction history",
+        "Standard financial reports",
+      ],
+      cta: "Get Started Free",
+      popular: false,
+    },
+    {
+      name: "Pro",
+      desc: "Advanced tools and AI automation for serious money managers.",
+      priceMonthly: 12,
+      priceAnnual: 9,
+      badge: "Most Popular",
+      features: [
+        "Unlimited bank account connections",
+        "AI-powered spending insights & tips",
+        "Unlimited transaction history",
+        "Custom budgeting categories",
+        "Export data (CSV/PDF)",
+        "Priority customer support",
+      ],
+      cta: "Start 14-Day Free Trial",
+      popular: true,
+    },
+    {
+      name: "Family / Team",
+      desc: "Collaborative wealth management for households and small teams.",
+      priceMonthly: 29,
+      priceAnnual: 24,
+      badge: null,
+      features: [
+        "Everything in Pro plan",
+        "Up to 5 individual user profiles",
+        "Shared household budgets",
+        "Role-based permissions & security",
+        "Dedicated account advisor",
+      ],
+      cta: "Contact Sales",
+      popular: false,
+    },
+  ];
+
+  return (
+    <section id="pricing" className="py-24 md:py-32">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16 animated-section">
+          <SectionBadge icon={<CreditCard size={16} />}>Pricing</SectionBadge>
+          <SectionHeading>Simple, Transparent Plans</SectionHeading>
+          <SectionSub>
+            Choose the plan that fits your financial goals. Switch or cancel
+            anytime.
+          </SectionSub>
+
+          {/* Toggle Billing */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <span
+              className={`text-sm font-medium ${
+                !annual ? "text-text-primary" : "text-text-secondary"
+              }`}
+            >
+              Monthly Billing
+            </span>
+            <button
+              onClick={() => setAnnual((a) => !a)}
+              className="relative w-14 h-8 bg-surface-alt border border-border-color rounded-full p-1 transition-colors"
+            >
+              <div
+                className={`w-6 h-6 bg-accent rounded-full transition-transform ${
+                  annual ? "translate-x-6" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span
+              className={`text-sm font-medium ${
+                annual ? "text-text-primary" : "text-text-secondary"
+              }`}
+            >
+              Annual Billing
+              <span className="ml-2 text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                Save 25%
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`relative rounded-3xl p-8 border transition-all duration-300 flex flex-col justify-between ${
+                plan.popular
+                  ? "bg-surface border-accent shadow-2xl shadow-accent/10 scale-[1.02]"
+                  : "bg-surface-alt/40 border-border-color hover:border-border-hover"
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                  {plan.badge}
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-2xl font-bold text-text-primary mb-2">
+                  {plan.name}
+                </h3>
+                <p className="text-text-secondary text-sm mb-6 leading-relaxed">
+                  {plan.desc}
+                </p>
+
+                <div className="mb-8">
+                  <span className="text-4xl md:text-5xl font-bold text-text-primary">
+                    ${annual ? plan.priceAnnual : plan.priceMonthly}
+                  </span>
+                  <span className="text-text-secondary text-sm ml-2">
+                    / month{" "}
+                    {annual && plan.priceAnnual > 0 ? "(billed annually)" : ""}
+                  </span>
+                </div>
+
+                <ul className="space-y-3.5 mb-8">
+                  {plan.features.map((f, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 text-sm text-text-secondary"
+                    >
+                      <CheckCircle2
+                        size={18}
+                        className="text-accent shrink-0"
+                      />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <Link
+                to="/register"
+                className={`w-full py-3.5 px-6 rounded-xl font-semibold text-center transition-all duration-300 ${
+                  plan.popular
+                    ? "bg-accent text-white hover:bg-accent-hover shadow-lg shadow-accent/20"
+                    : "border border-border-color text-text-primary hover:bg-surface-alt"
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ---------- FAQ ---------- */
+const faqData = [
+  {
+    q: "How does Finexa connect to my bank accounts?",
+    a: "Finexa uses bank-grade 256-bit SSL encryption via industry-leading open banking APIs. We never store your credentials and operate under strict read-only access guarantees.",
+  },
+  {
+    q: "Can I use Finexa for free?",
+    a: "Yes! Our Starter plan is 100% free forever and allows you to track up to two accounts and access basic analytics without entering a credit card.",
+  },
+  {
+    q: "How do the AI Insights work?",
+    a: "Our integrated AI analyzes your anonymized transaction trends to detect recurring subscriptions, identify unused recurring charges, and highlight potential savings opportunities tailored to your habits.",
+  },
+  {
+    q: "Can I cancel or change my plan anytime?",
+    a: "Absolutely. You can upgrade, downgrade, or cancel your subscription at any time directly from your account settings with no hidden fees.",
+  },
+  {
+    q: "Is my personal financial data safe?",
+    a: "Security is our top priority. All personal and financial information is encrypted both in transit and at rest using bank-grade AES-256 protocols.",
+  },
+];
+
+const FAQ = () => {
+  const [openIndex, setOpenIndex] = useState(0);
+
+  return (
+    <section
+      id="faq"
+      className="py-24 md:py-32 bg-surface/50 border-t border-border-color"
+    >
+      <div className="container mx-auto px-6 max-w-4xl">
+        <div className="text-center mb-16 animated-section">
+          <SectionBadge icon={<HelpCircle size={16} />}>FAQ</SectionBadge>
+          <SectionHeading>Frequently Asked Questions</SectionHeading>
+          <SectionSub>
+            Have questions? We're here to help you understand how Finexa works.
+          </SectionSub>
+        </div>
+
+        <div className="space-y-4">
+          {faqData.map((item, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <div
+                key={index}
+                className="border border-border-color rounded-2xl bg-surface transition-colors overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="w-full p-6 text-left flex justify-between items-center gap-4 focus:outline-none"
+                >
+                  <span className="font-semibold text-lg text-text-primary">
+                    {item.q}
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    className={`text-text-secondary transition-transform duration-300 shrink-0 ${
+                      isOpen ? "rotate-180 text-accent" : ""
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-6 pb-6 text-text-secondary leading-relaxed text-sm border-t border-border-color/50 pt-4">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ---------- Footer ---------- */
+const Footer = () => (
+  <footer className="bg-surface border-t border-border-color pt-16 pb-12 text-sm text-text-secondary">
+    <div className="container mx-auto px-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-10 pb-12 border-b border-border-color">
+        {/* Brand column */}
+        <div className="md:col-span-2 space-y-4">
+          <FinexaLogo variant="horizontal" size={72} />
+          <p className="max-w-sm text-text-secondary leading-relaxed">
+            Your all-in-one personal finance platform. Smart budgeting, clear
+            insights, and unified wealth management made simple.
+          </p>
+          <div className="flex items-center gap-4 pt-2">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-lg bg-surface-alt border border-border-color hover:text-accent transition-colors"
+              aria-label="Twitter"
+            >
+              <Twitter size={18} />
+            </a>
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-lg bg-surface-alt border border-border-color hover:text-accent transition-colors"
+              aria-label="GitHub"
+            >
+              <Github size={18} />
+            </a>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded-lg bg-surface-alt border border-border-color hover:text-accent transition-colors"
+              aria-label="LinkedIn"
+            >
+              <Linkedin size={18} />
+            </a>
+          </div>
+        </div>
+
+        {/* Links Column 1 */}
+        <div>
+          <h4 className="font-semibold text-text-primary mb-4">Product</h4>
+          <ul className="space-y-2.5">
+            <li>
+              <a
+                href="#features"
+                className="hover:text-text-primary transition"
+              >
+                Features
+              </a>
+            </li>
+            <li>
+              <a href="#how" className="hover:text-text-primary transition">
+                How It Works
+              </a>
+            </li>
+            <li>
+              <a href="#pricing" className="hover:text-text-primary transition">
+                Pricing
+              </a>
+            </li>
+            <li>
+              <a href="#faq" className="hover:text-text-primary transition">
+                FAQ
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Links Column 2 */}
+        <div>
+          <h4 className="font-semibold text-text-primary mb-4">Company</h4>
+          <ul className="space-y-2.5">
+            <li>
+              <a href="#about" className="hover:text-text-primary transition">
+                About Us
+              </a>
+            </li>
+            <li>
+              <a href="#careers" className="hover:text-text-primary transition">
+                Careers
+              </a>
+            </li>
+            <li>
+              <a href="#blog" className="hover:text-text-primary transition">
+                Blog
+              </a>
+            </li>
+            <li>
+              <a href="#contact" className="hover:text-text-primary transition">
+                Contact
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Links Column 3 */}
+        <div>
+          <h4 className="font-semibold text-text-primary mb-4">Legal</h4>
+          <ul className="space-y-2.5">
+            <li>
+              <a href="#privacy" className="hover:text-text-primary transition">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#terms" className="hover:text-text-primary transition">
+                Terms of Service
+              </a>
+            </li>
+            <li>
+              <a
+                href="#security"
+                className="hover:text-text-primary transition"
+              >
+                Security
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div>
+          &copy; {new Date().getFullYear()} Finexa, Inc. All rights reserved.
+        </div>
+        <div className="flex items-center gap-6">
+          <a href="#privacy" className="hover:text-text-primary transition">
+            Privacy
+          </a>
+          <a href="#terms" className="hover:text-text-primary transition">
+            Terms
+          </a>
+          <a href="#cookies" className="hover:text-text-primary transition">
+            Cookies
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+);
+
 /* ---------- Main Component export ---------- */
 export default function LandingPage() {
   return (
@@ -877,7 +1252,10 @@ export default function LandingPage() {
         <Hero />
         <Features />
         <HowItWorks />
+        <Pricing />
+        <FAQ />
       </main>
+      <Footer />
     </div>
   );
 }

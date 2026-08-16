@@ -5,10 +5,6 @@ import {
   getMe,
   updateCurrency,
   googleAuth,
-  sendGoogleOtp,
-  verifyGoogleOtp,
-  sendRegistrationOtp,
-  verifyRegistrationOtp,
   updateProfile,
   changePassword,
   updateSettings,
@@ -20,12 +16,8 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/register/send-otp", sendRegistrationOtp);
-router.post("/register/verify", verifyRegistrationOtp);
 router.post("/register", register);
 router.post("/login", login);
-router.post("/google/send-otp", sendGoogleOtp);
-router.post("/google/verify", verifyGoogleOtp);
 router.post("/google", googleAuth);
 router.get("/me", protect, getMe);
 router.put("/me", protect, updateCurrency);
