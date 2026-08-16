@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { OAuth2Client } from "google-auth-library";
 import pool from "../db.js";
 import { defaultCategories } from "../utils/defaultCategories.js";
@@ -47,49 +47,27 @@ const verifyRecaptcha = async (token) => {
   }
 };
 
-// Create a reusable nodemailer transporter with strict timeouts for cloud environments like Render
-let transporterCache = null;
-const getTransporter = () => {
-  if (!process.env.SMTP_HOST) return null;
-  if (transporterCache) return transporterCache;
-
-  // Force port 465 and direct TLS/SSL
-  const port = Number(process.env.SMTP_PORT) || 465;
-
-  transporterCache = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: port,
-    secure: true, // MUST be true for port 465
-    auth: process.env.SMTP_USER
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-            ? process.env.SMTP_PASS.replace(/\s+/g, "")
-            : "",
-        }
-      : undefined,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
-  return transporterCache;
+// Initialize Resend HTTP Client
+const getResend = () => {
+  if (!process.env.RESEND_API_KEY) return null;
+  return new Resend(process.env.RESEND_API_KEY);
 };
 
+// Send OTP via Resend HTTP API (bypasses Render SMTP port blocking)
 const sendOtpEmail = async (email, otp) => {
-  const transporter = getTransporter();
-  if (!transporter) {
+  const resend = getResend();
+  if (!resend) {
     console.warn(
-      "[OTP] SMTP not configured. Returning code without email:",
+      "[OTP] RESEND_API_KEY not configured. Returning code without email:",
       email,
     );
     return;
   }
 
-  const sendPromise = transporter.sendMail({
-    from: process.env.SMTP_FROM || "IncomeVerse <no-reply@IncomeVerse.app>",
+  const sender = process.env.SMTP_FROM || "IncomeVerse <onboarding@resend.dev>";
+
+  await resend.emails.send({
+    from: sender,
     to: email,
     subject: "Your IncomeVerse verification code",
     text: `Your IncomeVerse verification code is: ${otp}. It expires in 10 minutes.`,
@@ -102,13 +80,6 @@ const sendOtpEmail = async (email, otp) => {
       </div>
     `,
   });
-
-  // Guard against hanging socket connections on Render
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("SMTP email sending timed out")), 9000),
-  );
-
-  await Promise.race([sendPromise, timeoutPromise]);
 };
 
 // Store a fresh OTP for an email, invalidating any previous ones.
