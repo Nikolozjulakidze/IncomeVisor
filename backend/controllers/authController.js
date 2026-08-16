@@ -47,15 +47,18 @@ const verifyRecaptcha = async (token) => {
   }
 };
 
-// Create a reusable nodemailer transporter (lazy, only when SMTP is configured).
+// Create a reusable nodemailer transporter with strict timeouts for cloud environments like Render
 let transporterCache = null;
 const getTransporter = () => {
   if (!process.env.SMTP_HOST) return null;
   if (transporterCache) return transporterCache;
+
+  const port = Number(process.env.SMTP_PORT) || 587;
+
   transporterCache = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
+    port: port,
+    secure: port === 465, // Must be false for port 587
     auth: process.env.SMTP_USER
       ? {
           user: process.env.SMTP_USER,
@@ -64,8 +67,12 @@ const getTransporter = () => {
             : "",
         }
       : undefined,
+    // Strict timeouts prevent Render sockets from pending indefinitely
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
     tls: {
-      rejectUnauthorized: false, // Prevents local dev SSL connection drops
+      rejectUnauthorized: false,
     },
   });
   return transporterCache;
@@ -81,7 +88,7 @@ const sendOtpEmail = async (email, otp) => {
     return;
   }
 
-  await transporter.sendMail({
+  const sendPromise = transporter.sendMail({
     from: process.env.SMTP_FROM || "IncomeVerse <no-reply@IncomeVerse.app>",
     to: email,
     subject: "Your IncomeVerse verification code",
@@ -95,6 +102,13 @@ const sendOtpEmail = async (email, otp) => {
       </div>
     `,
   });
+
+  // Guard against hanging socket connections on Render
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("SMTP email sending timed out")), 9000),
+  );
+
+  await Promise.race([sendPromise, timeoutPromise]);
 };
 
 // Store a fresh OTP for an email, invalidating any previous ones.
@@ -276,7 +290,9 @@ export const sendRegistrationOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("Send registration OTP error:", error);
-    res.status(500).json({ message: "Failed to send verification code" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to send verification code" });
   }
 };
 
@@ -469,7 +485,9 @@ export const sendEmailChangeOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("Send email change OTP error:", error);
-    res.status(500).json({ message: "Failed to send verification code" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to send verification code" });
   }
 };
 
@@ -764,7 +782,9 @@ export const sendGoogleOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("Send Google OTP error:", error);
-    res.status(500).json({ message: "Failed to send verification code" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to send verification code" });
   }
 };
 
@@ -802,7 +822,9 @@ export const verifyGoogleOtp = async (req, res) => {
     }
 
     const otpId = result.rows[0].id;
-    await pool.query("UPDATE email_otps SET used = TRUE WHERE id = $1", [otpId]);
+    await pool.query("UPDATE email_otps SET used = TRUE WHERE id = $1", [
+      otpId,
+    ]);
 
     // 4. Find or create the user
     const user = await handleOAuthUser({
