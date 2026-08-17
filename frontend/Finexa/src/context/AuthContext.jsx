@@ -33,30 +33,6 @@ export const AuthProvider = ({ children }) => {
     setUser(res.data.user);
   };
 
-  const sendRegisterOtp = async ({ email }) => {
-    const res = await api.post(API_PATHS.AUTH.REGISTER_SEND_OTP, { email });
-    return res.data;
-  };
-
-  const verifyRegisterOtp = async ({
-    name,
-    email,
-    password,
-    currency,
-    otp,
-  }) => {
-    const res = await api.post(API_PATHS.AUTH.REGISTER_VERIFY_OTP, {
-      name,
-      email,
-      password,
-      currency,
-      otp,
-    });
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-    return res.data;
-  };
-
   const googleLogin = async (idToken) => {
     const res = await api.post(API_PATHS.AUTH.GOOGLE, { idToken });
     localStorage.setItem("token", res.data.token);
@@ -124,8 +100,6 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
-        sendRegisterOtp,
-        verifyRegisterOtp,
         googleLogin,
         updateCurrency,
         updateProfile,

@@ -1,12 +1,8 @@
 export const API_PATHS = {
   AUTH: {
     REGISTER: "/auth/register",
-    REGISTER_SEND_OTP: "/auth/register/send-otp",
-    REGISTER: "/auth/register",
     LOGIN: "/auth/login",
     GOOGLE: "/auth/google",
-    GOOGLE_SEND_OTP: "/auth/google/send-otp",
-    GOOGLE_VERIFY_OTP: "/auth/google/verify",
     ME: "/auth/me",
     UPDATE_ME: "/auth/me",
     UPDATE_PROFILE: "/auth/me/profile",

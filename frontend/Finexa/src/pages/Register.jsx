@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Eye, EyeOff, ChevronDown, ArrowLeft, MailCheck } from "lucide-react";
+import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 import AuthHero from "../components/AuthHero.jsx";
@@ -21,23 +21,19 @@ const CURRENCIES = [
 ];
 
 const Register = () => {
-  const { sendRegisterOtp, verifyRegisterOtp } = useAuth();
+  const { register } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1 = form, 2 = OTP
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     currency: "USD",
   });
-  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [maskedEmail, setMaskedEmail] = useState("");
-  const otpInputRef = useRef(null);
 
-  const handleSendOtp = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (form.password.length < 6) {
       toast.error(t("auth.pwShort"));
@@ -45,38 +41,19 @@ const Register = () => {
     }
     setLoading(true);
     try {
-      const res = await sendRegisterOtp({ email: form.email });
-      setMaskedEmail(res.email || form.email);
-      setStep(2);
-      setTimeout(() => otpInputRef.current?.focus(), 0);
-    } catch (err) {
-      toast.error(err.response?.data?.message || t("auth.sendCodeFailed"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    if (!otp || otp.length !== 6) {
-      toast.error(t("auth.enterCode"));
-      return;
-    }
-    setLoading(true);
-    try {
-      await verifyRegisterOtp({ ...form, otp });
+      await register({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        currency: form.currency,
+      });
       toast.success(t("auth.accountCreated"));
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || t("auth.verificationFailed"));
+      toast.error(err.response?.data?.message || t("auth.registerFailed"));
     } finally {
       setLoading(false);
     }
-  };
-
-  const goBack = () => {
-    setStep(1);
-    setOtp("");
   };
 
   return (
@@ -88,206 +65,120 @@ const Register = () => {
 
         <div className="flex-1 flex items-center justify-center py-10">
           <div className="w-full max-w-md">
-            {step === 1 ? (
-              <>
-                <h2 className="text-4xl font-bold text-text-primary tracking-tight mb-2">
-                  {t("auth.signUp")}
-                </h2>
-                <p className="text-text-secondary mb-10">
-                  {t("auth.signupSubtitle")}
-                </p>
+            <h2 className="text-4xl font-bold text-text-primary tracking-tight mb-2">
+              {t("auth.signUp")}
+            </h2>
+            <p className="text-text-secondary mb-10">
+              {t("auth.signupSubtitle")}
+            </p>
 
-                <form onSubmit={handleSendOtp} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-text-primary">
-                      {t("auth.name")}
-                    </label>
-                    <input
-                      required
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      className="input-field w-full rounded-2xl px-5 py-4 text-sm placeholder-text-tertiary focus-ring-accent"
-                      placeholder="Alex"
-                    />
-                  </div>
+            <form onSubmit={onSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-text-primary">
+                  {t("auth.name")}
+                </label>
+                <input
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="input-field w-full rounded-2xl px-5 py-4 text-sm placeholder-text-tertiary focus-ring-accent"
+                  placeholder="Alex"
+                />
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-text-primary">
-                      {t("auth.email")}
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={form.email}
-                      onChange={(e) =>
-                        setForm({ ...form, email: e.target.value })
-                      }
-                      className="input-field w-full rounded-2xl px-5 py-4 text-sm placeholder-text-tertiary focus-ring-accent"
-                      placeholder="you@example.com"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-text-primary">
+                  {t("auth.email")}
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="input-field w-full rounded-2xl px-5 py-4 text-sm placeholder-text-tertiary focus-ring-accent"
+                  placeholder="you@example.com"
+                />
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-text-primary">
-                      {t("auth.password")}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        minLength={6}
-                        value={form.password}
-                        onChange={(e) =>
-                          setForm({ ...form, password: e.target.value })
-                        }
-                        className="input-field w-full rounded-2xl px-5 py-4 pr-12 text-sm placeholder-text-tertiary focus-ring-accent"
-                        placeholder={t("settings.password.short")}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-text-primary">
-                      {t("auth.currency")}
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={form.currency}
-                        onChange={(e) =>
-                          setForm({ ...form, currency: e.target.value })
-                        }
-                        className="input-field w-full appearance-none rounded-2xl px-5 py-4 pr-12 text-sm placeholder-text-tertiary focus-ring-accent cursor-pointer"
-                      >
-                        {CURRENCIES.map((c) => (
-                          <option key={c.value} value={c.value}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown
-                        size={18}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white font-semibold py-4 rounded-2xl transition shadow-lg shadow-violet-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <>
-                        <Spinner size="sm" />
-                        {t("auth.sendingCode")}
-                      </>
-                    ) : (
-                      t("auth.createAccount")
-                    )}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition mb-6"
-                >
-                  <ArrowLeft size={16} />
-                  {t("auth.back")}
-                </button>
-
-                <div className="flex flex-col items-center text-center mb-8">
-                  <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
-                    <MailCheck size={32} className="text-accent" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-text-primary tracking-tight mb-2">
-                    {t("auth.verifyEmail")}
-                  </h2>
-                  <p className="text-text-secondary">
-                    {t("auth.verifyDesc")}{" "}
-                    <span className="font-semibold text-text-primary">
-                      {maskedEmail}
-                    </span>
-                    . {t("auth.verifyDesc2")}
-                  </p>
-                </div>
-
-                <form onSubmit={handleVerifyOtp} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-text-primary">
-                      {t("auth.verifyCode")}
-                    </label>
-                    <input
-                      ref={otpInputRef}
-                      required
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={otp}
-                      onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, ""))
-                      }
-                      className="input-field w-full rounded-2xl px-5 py-4 text-center text-2xl font-bold tracking-[0.5em] placeholder-text-tertiary focus-ring-accent"
-                      placeholder="••••••"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white font-semibold py-4 rounded-2xl transition shadow-lg shadow-violet-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <>
-                        <Spinner size="sm" />
-                        {t("auth.verifying")}
-                      </>
-                    ) : (
-                      t("auth.verifyAndSignup")
-                    )}
-                  </button>
-
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-text-primary">
+                  {t("auth.password")}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                    className="input-field w-full rounded-2xl px-5 py-4 pr-12 text-sm placeholder-text-tertiary focus-ring-accent"
+                    placeholder={t("settings.password.short")}
+                  />
                   <button
                     type="button"
-                    onClick={handleSendOtp}
-                    disabled={loading}
-                    className="w-full text-center text-sm font-semibold text-accent hover:text-accent-hover transition disabled:opacity-60"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition"
+                    tabIndex={-1}
                   >
-                    {t("auth.resend")}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-                </form>
-              </>
-            )}
+                </div>
+              </div>
 
-            {step === 1 && (
-              <>
-                <SocialAuthButtons />
-                <p className="text-center mt-8 text-sm text-text-secondary">
-                  {t("auth.alreadyHaveAccount")}{" "}
-                  <Link
-                    to="/login"
-                    className="font-semibold text-accent hover:text-accent-hover transition"
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-text-primary">
+                  {t("auth.currency")}
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.currency}
+                    onChange={(e) =>
+                      setForm({ ...form, currency: e.target.value })
+                    }
+                    className="input-field w-full appearance-none rounded-2xl px-5 py-4 pr-12 text-sm placeholder-text-tertiary focus-ring-accent cursor-pointer"
                   >
-                    {t("auth.signIn2")}
-                  </Link>
-                </p>
-              </>
-            )}
+                    {CURRENCIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={18}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white font-semibold py-4 rounded-2xl transition shadow-lg shadow-violet-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Spinner size="sm" />
+                    {t("auth.creatingAccount")}
+                  </>
+                ) : (
+                  t("auth.createAccount")
+                )}
+              </button>
+            </form>
+
+            <SocialAuthButtons />
+
+            <p className="text-center mt-8 text-sm text-text-secondary">
+              {t("auth.alreadyHaveAccount")}{" "}
+              <Link
+                to="/login"
+                className="font-semibold text-accent hover:text-accent-hover transition"
+              >
+                {t("auth.signIn2")}
+              </Link>
+            </p>
           </div>
         </div>
 
